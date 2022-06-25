@@ -2,7 +2,7 @@
 
 const body = document.querySelector("body");
 const framerate = 50;
-const maxfishnum = 500;
+const maxfishnum = 1000;
 
 class basefish {
     constructor(size = 1, position = [0, 0], direction = [1, 0], speed = 0) {
@@ -232,8 +232,6 @@ class mousetarget {
 
 //init player
 let player = new myfish(50, [0, 0], [1, 0], 0, 100, 0.5, 8);
-player.element = document.createElement("div");
-body.append(player.element);
 let fishs = [];
 
 
@@ -283,15 +281,15 @@ function initfishs(num) {
         fishs.push(new shark(20 + Math.random() * 50 + depth / 10, [Math.random() * 10000 - 5000, depth], [1, 0]));
 
     }
-    for (let fish of fishs) { fish.element = document.createElement("div"); body.appendChild(fish.element); }
+    for (let fish of fishs) { fish.element = null; }
 }
 
 function render(bg) {
-    body.removeChild(player.element);
     renderbg(bg);
-
+    if (player.element != null)
+        bg.element.removeChild(player.element);
     redraw(player, bg);
-    for (let fish of fishs) { setTimeout(() => { if (fish.element != null) { body.removeChild(fish.element); fish.element = null; }; if (inview(playercoord(fish.position), bg)) { redraw(fish, bg) } }, 0); }
+    for (let fish of fishs) { setTimeout(() => { if (fish.element != null) { bg.element.removeChild(fish.element); fish.element = null; }; if (inview(playercoord(fish.position), bg)) { redraw(fish, bg) } }, 0); }
 
     player.move(mouse.target, mouse.speed);
     for (let fish of fishs) { setTimeout(() => { fish.move(player) }, 0) };
@@ -335,7 +333,7 @@ function redraw(fish, bg) {
     obj.appendChild(img);
     obj.style.width = fish.size + 'px';
     obj.style.height = fish.size + 'px';
-    body.appendChild(obj);
+    bg.element.appendChild(obj);
     fish.element = obj;
 }
 function rotate_hor(img, angle) {
