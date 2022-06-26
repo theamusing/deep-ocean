@@ -241,9 +241,135 @@ class hammerheadshark extends shark {
         return this._maxsize;
     }
 }
-
+class rollingbgimg {
+    constructor(src, width, height, position = [0, 0]) {
+        this._src = src;
+        this._width = width;
+        this._height = height;
+        let img = { position: position, element: null, up: null, down: null, left: null, right: null };
+        this._imgs = [img];
+    }
+    unbind(img) {
+        if (img.up != null) {
+            img.up.down = null;
+        }
+        if (img.down != null) {
+            img.down.up = null;
+        }
+        if (img.left != null) {
+            img.left.right = null;
+        }
+        if (img.right != null) {
+            img.right.left = null;
+        }
+    }
+    render(bg) {
+        let imgs = []
+        for (let img of this._imgs) {
+            if (img.element != null) {
+                //bg.element.removeChild(img.element);
+                img.element.remove();
+            }
+            let pos = playercoord(img.position);
+            // pos[0] += bg.left + bg.width / 2;
+            // pos[1] += bg.top + bg.height / 2;
+            if (!(pos[0] + this._width / 2 < -bg.width / 2 || pos[0] - this._width / 2 > bg.width / 2 || pos[1] + this._height / 2 < -bg.height / 2 || pos[1] - this._height / 2 > bg.height / 2)) {
+                imgs.push(img);
+            }
+            else {
+                this.unbind(img);
+            }
+        }
+        this._imgs = imgs;
+        for (let img of this._imgs) {
+            this.redraw(img, bg);
+            let pos = playercoord(img.position);
+            // pos[0] += bg.left + bg.width / 2;
+            // pos[1] += bg.top + bg.height / 2;
+            if (pos[0] + this._width / 2 < bg.width / 2 && img.right == null) {
+                let newimg = { position: [img.position[0] + this._width, img.position[1]], element: null, up: null, down: null, left: null, right: null };
+                newimg.left = img;
+                img.right = newimg;
+                if (img.up != null && img.up.right != null) {
+                    newimg.up = img.up.right;
+                    img.up.right.down = newimg;
+                }
+                if (img.down != null && img.down.right != null) {
+                    newimg.down = img.down.right;
+                    img.down.right.up = newimg;
+                }
+                imgs.push(newimg);
+                this.redraw(newimg, bg);
+            }
+            if (pos[0] - this._width / 2 > -bg.width / 2 && img.left == null) {
+                let newimg = { position: [img.position[0] - this._width, img.position[1]], element: null, up: null, down: null, left: null, right: null };
+                newimg.right = img;
+                img.left = newimg;
+                if (img.up != null && img.up.left != null) {
+                    newimg.up = img.up.left;
+                    img.up.left.down = newimg;
+                }
+                if (img.down != null && img.down.left != null) {
+                    newimg.down = img.down.left;
+                    img.down.left.up = newimg;
+                }
+                imgs.push(newimg);
+                this.redraw(newimg, bg);
+            }
+            if (pos[1] + this._height / 2 < bg.height / 2 && img.down == null) {
+                let newimg = { position: [img.position[0], img.position[1] + this._height], element: null, up: null, down: null, left: null, right: null };
+                newimg.up = img;
+                img.down = newimg;
+                if (img.left != null && img.left.down != null) {
+                    newimg.left = img.left.down;
+                    img.left.down.right = newimg;
+                }
+                if (img.right != null && img.right.down != null) {
+                    newimg.right = img.right.down;
+                    img.right.down.left = newimg;
+                }
+                imgs.push(newimg);
+                this.redraw(newimg, bg);
+            }
+            if (pos[1] - this._height / 2 > -bg.height / 2 && img.up == null) {
+                let newimg = { position: [img.position[0], img.position[1] - this._height], element: null, up: null, down: null, left: null, right: null };
+                newimg.down = img;
+                img.up = newimg;
+                if (img.left != null && img.left.up != null) {
+                    newimg.left = img.left.up;
+                    img.left.up.right = newimg;
+                }
+                if (img.right != null && img.right.up != null) {
+                    newimg.right = img.right.up;
+                    img.right.up.left = newimg;
+                }
+                imgs.push(newimg);
+                this.redraw(newimg, bg);
+            }
+        }
+        this._imgs = imgs;
+    }
+    redraw(img, bg) {
+        if (img.element != null) {
+            // bg.element.removeChild(img.element);
+            img.element.remove();
+        }
+        let pos = playercoord(img.position);
+        pos[0] += bg.left + bg.width / 2 - this._width / 2;
+        pos[1] += bg.top + bg.height / 2 - this._height / 2;
+        img.element = document.createElement('img');
+        img.element.style.position = 'fixed';
+        img.element.src = this._src;
+        img.element.style.width = this._width + 'px';
+        img.element.style.height = this._height + 'px';
+        img.element.style.top = pos[1] + 'px';
+        img.element.style.left = pos[0] + 'px';
+        bg.element.appendChild(img.element);
+    }
+}
 let timer;
 const MinDistance = 30;
+const bgimg_path = 'imgs/bgimg.png';
 
 class mousetarget {
     constructor(target = [0, 0], speed = 0) {
@@ -278,11 +404,13 @@ function init() {
 }
 function initbg() {
     let playground = document.createElement("div");
-    let bg = { top: 0, left: 0, width: document.body.offsetWidth, height: window.innerHeight, element: playground };
+    let bg = { top: 0, left: 0, width: document.body.offsetWidth, height: window.innerHeight, element: playground, rollingimg: null };
     playground.style.left = bg.left + 'px';
     playground.style.top = bg.top + 'px';
     playground.style.width = '100%';
     playground.style.height = '100%';
+    let bgimg = new rollingbgimg(bgimg_path, 5000, 5000);
+    bg.rollingimg = bgimg;
     body.appendChild(playground);
     playground.addEventListener("mousemove", function (e) {
         let target = [e.pageX - bg.left - bg.width / 2, e.pageY - bg.top - bg.height / 2];
@@ -300,7 +428,7 @@ function initbg() {
     return bg;
 }
 
-function initfishs(num,bg) {
+function initfishs(num, bg) {
     for (let i = 0; i < num; i++) {
         fishs.push(genAFish([200, 200], bg));
     }
@@ -309,6 +437,7 @@ function initfishs(num,bg) {
 
 function render(bg) {
     renderbg(bg);
+    bg.rollingimg.render(bg);
     if (player.element != null)
         bg.element.removeChild(player.element);
     redraw(player, bg);
@@ -323,17 +452,17 @@ function render(bg) {
         }, 0);
     }
     player.move(mouse.target, mouse.speed);
-    for (let i = 0; i < maxfishnum;i++) { //更新鱼的状态
+    for (let i = 0; i < maxfishnum; i++) { //更新鱼的状态
         let fish = fishs[i];
         setTimeout(() => {
             fish.move(player)
             let tmp = playercoord(fish.position);
-            if (Math.abs(tmp[0]) > bg.width*1.5 || Math.abs(tmp[1]) > bg.height*1.5) { //太远重新生成
+            if (Math.abs(tmp[0]) > bg.width * 1.5 || Math.abs(tmp[1]) > bg.height * 1.5) { //太远重新生成
                 fishs[i] = genAFish([bg.width, bg.height], bg);
                 console.log("respawn:" + fishs[i].type + "," + fishs[i].position);
             }
-            else if (Math.abs(tmp[0]) < player.size/2 && Math.abs(tmp[1]) < player.size/2) { //距离近判断吃
-                if (player.size>fish.size) {
+            else if (Math.abs(tmp[0]) < player.size / 2 && Math.abs(tmp[1]) < player.size / 2) { //距离近判断吃
+                if (player.size > fish.size) {
                     bg.element.removeChild(fish.element);
                     player.size += fish.size / 10; // TODO:差距过大时减少收益
                     fishs[i] = genAFish([bg.width, bg.height], bg);
@@ -343,7 +472,7 @@ function render(bg) {
     };
 }
 
-function genAFish(innersize, bg, rnd=undefined) { //生成一条鱼 rnd用来手动控制概率
+function genAFish(innersize, bg, rnd = undefined) { //生成一条鱼 rnd用来手动控制概率
     if (rnd === undefined) { rnd = Math.random() * 1200; }
     if (rnd < 200) {
         return new jellyfish(Math.random() * 100 + 30, genRandPos(player.position, innersize, [bg.width * 2, bg.height * 2]));
@@ -463,4 +592,3 @@ function removeClass(className) {
     for (let el of ele) { el.remove(); }
 }
 init();
-
