@@ -2,7 +2,7 @@
 
 const body = document.querySelector("body");
 const framerate = 50;
-const maxfishnum = 1000;
+const maxfishnum = 2000;
 
 class basefish {
     constructor(size = 1, position = [0, 0], direction = [1, 0], speed = 0) {
