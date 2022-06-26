@@ -1,0 +1,25 @@
+div {
+    position: fixed;
+}
+
+img {
+    height: 100%;
+    width: 100%;
+
+}
+
+img .myfish {
+    src: 'imgs/myfish.png';
+}
+
+img .littlefish {
+    src: 'imgs/littlefish.png';
+}
+
+img .shark {
+    src: 'imgs/shark.png';
+}
+
+img .jellyfish {
+    src: 'imgs/jellyfish.png';
+}
