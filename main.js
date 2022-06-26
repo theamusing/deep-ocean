@@ -12,7 +12,6 @@ class basefish {
         this._speed = speed;
         this._element = null;
         this._type = 'basefish';
-        this._imgsrc = '';
     }
     norm(vs) {
         let sum = 0;
@@ -26,8 +25,11 @@ class basefish {
             return rst;
         }
     }
+    get maxsize() {
+        return Infinity;
+    }
     get type() { return this._type }
-    get imgsrc() { return this._imgsrc }
+    get imgsrc() { return 'imgs/' + this._type + '.png' }
     get element() { return this._element }
     set element(element) { this._element = element }
     get size() { return this._size }
@@ -62,7 +64,6 @@ class myfish extends basefish {
         this._damp = damp;
         this._maxspeed = maxspeed;
         this._type = 'myfish';
-        this._imgsrc = 'imgs/myfish.png';
     }
     get health() { return this._health }
     set health(health) { this._health = health }
@@ -101,9 +102,8 @@ class littlefish extends basefish {
         this._maxspeed = 5 + Math.random();
         this._minspeed = 2 + Math.random();
         this._damp = 0.02;
-        this._awarerange = 300;
+        this._awarerange = 200;
         this._type = 'littlefish';
-        this._imgsrc = 'imgs/littlefish.png';
     }
     move(player) {
         if (this._speed > this._damp)
@@ -115,7 +115,7 @@ class littlefish extends basefish {
             this._speed = this._maxspeed;
             let distance = [player.position[0] - this._position[0], player.position[1] - this.position[1]];
             let len = Math.sqrt(distance[0] * distance[0] + distance[1] * distance[1]);
-            if (len < this._awarerange && player.size > this._size) {
+            if (len < this._awarerange + this._size / 2 + player.size / 2 && player.size > this._size) {
                 this._direction = super.norm([-distance[0], -distance[1]]);
             }
             else {
@@ -130,17 +130,16 @@ class littlefish extends basefish {
     }
 }
 class shark extends basefish {
-    constructor(size, position, direction) {
+    constructor(size, position, direction, maxspeed = 6.5, minspeed = 4, normalspeed = 5, maxdamp = 0.1, normaldamp = 0.01, awarerange = 200) {
         super(size, position, direction, 0);
-        this._maxspeed = 6.5 + Math.random();
-        this._minspeed = 4 + Math.random();
-        this._normalspeed = 5;
-        this._maxdamp = 0.1;
-        this._normaldamp = 0.02;
-        this._damp = 0.02;
-        this._awarerange = 300;
+        this._maxspeed = maxspeed;
+        this._minspeed = minspeed;
+        this._normalspeed = normalspeed;
+        this._maxdamp = maxdamp;
+        this._normaldamp = normaldamp;
+        this._damp = this._normaldamp;
+        this._awarerange = awarerange;
         this._type = 'shark';
-        this._imgsrc = 'imgs/shark.png';
     }
     move(player) {
         if (this._speed > this._damp)
@@ -153,7 +152,7 @@ class shark extends basefish {
             this._damp = this._normaldamp;
             let distance = [player.position[0] - this._position[0], player.position[1] - this.position[1]];
             let len = Math.sqrt(distance[0] * distance[0] + distance[1] * distance[1]);
-            if (len < this._awarerange) {//hunting mod
+            if (len < this._awarerange + this._size / 2 + player.size / 2) {//hunting mod
                 this._damp = this._maxdamp;
                 this._speed = this._maxspeed;
                 if (player.size > this._size)
@@ -181,7 +180,6 @@ class jellyfish extends basefish {
         this._downdamp = 0.01;
         this._state = 0;//0:up;1:down
         this._type = 'jellyfish';
-        this._imgsrc = 'imgs/jellyfish.png';
     }
     move(player) {
         if (this._state == 0) {
@@ -206,6 +204,36 @@ class jellyfish extends basefish {
         }
         let angle = Math.atan(this._direction[0] / this._direction[1]) / Math.PI * 180;
         return [0, -angle];
+    }
+}
+class makoshark extends shark {
+    constructor(size, position, direction, maxspeed = 6, minspeed = 3.5, normalspeed = 4.5, maxdamp = 0.1, normaldamp = 0.01, awarerange = 150) {
+        super(size, position, direction, maxspeed, minspeed, normalspeed, maxdamp, normaldamp, awarerange);
+        this._type = 'makoshark';
+        this._maxsize = 150;
+        this._size = Math.min(this._size, this._maxsize);
+    }
+    get maxsize() {
+        return this._maxsize;
+    }
+}
+
+class greatwhiteshark extends shark {
+    constructor(size, position, direction, maxspeed = 7.5, minspeed = 4.5, normalspeed = 6, maxdamp = 0.1, normaldamp = 0.01, awarerange = 300) {
+        super(size, position, direction, maxspeed, minspeed, normalspeed, maxdamp, normaldamp, awarerange);
+        this._type = 'greatwhiteshark';
+    }
+}
+
+class hammerheadshark extends shark {
+    constructor(size, position, direction, maxspeed = 7, minspeed = 4, normalspeed = 5.5, maxdamp = 0.15, normaldamp = 0.01, awarerange = 200) {
+        super(size, position, direction, maxspeed, minspeed, normalspeed, maxdamp, normaldamp, awarerange);
+        this._type = 'hammerheadshark';
+        this._maxsize = 300;
+        this._size = Math.min(this._size, this._maxsize);
+    }
+    get maxsize() {
+        return this._maxsize;
     }
 }
 
@@ -245,11 +273,11 @@ function init() {
 }
 function initbg() {
     let playground = document.createElement("div");
-    let bg = { top: 10, left: 10, width: 1000, height: 700, element: playground };
+    let bg = { top: 0, left: 0, width: document.body.offsetWidth, height: window.innerHeight, element: playground };
     playground.style.left = bg.left + 'px';
     playground.style.top = bg.top + 'px';
-    playground.style.width = bg.width + 'px';
-    playground.style.height = bg.height + 'px';
+    playground.style.width = '100%';
+    playground.style.height = '100%';
     body.appendChild(playground);
     playground.addEventListener("mousemove", function (e) {
         let target = [e.pageX - bg.left - bg.width / 2, e.pageY - bg.top - bg.height / 2];
@@ -277,9 +305,19 @@ function initfishs(num) {
 
     }
     for (let i = 0; i < num / 12; i++) {
-        let depth = Math.random() * 10000;
-        fishs.push(new shark(20 + Math.random() * 50 + depth / 10, [Math.random() * 10000 - 5000, depth], [1, 0]));
-
+        let type = Math.random() * 100;
+        if (type < 40) {
+            let depth = Math.random() * 5000;
+            fishs.push(new makoshark(30 + Math.random() * 50 + depth / 100, [Math.random() * 10000 - 5000, depth], [1, 0]));
+        }
+        else if (type < 80) {
+            let depth = Math.random() * 8000;
+            fishs.push(new hammerheadshark(50 + Math.random() * 50 + depth / 50, [Math.random() * 10000 - 5000, depth], [1, 0]));
+        }
+        else {
+            let depth = Math.random() * 5000 + 5000;
+            fishs.push(new greatwhiteshark(50 + Math.random() * 50 + depth / 10, [Math.random() * 10000 - 5000, depth], [1, 0]));
+        }
     }
     for (let fish of fishs) { fish.element = null; }
 }
@@ -289,12 +327,14 @@ function render(bg) {
     if (player.element != null)
         bg.element.removeChild(player.element);
     redraw(player, bg);
-    for (let fish of fishs) { setTimeout(() => { if (fish.element != null) { bg.element.removeChild(fish.element); fish.element = null; }; if (inview(playercoord(fish.position), bg)) { redraw(fish, bg) } }, 0); }
+    for (let fish of fishs) { setTimeout(() => { if (fish.element != null) { bg.element.removeChild(fish.element); fish.element = null; }; if (inview(fish, bg)) { redraw(fish, bg) } }, 0); }
 
     player.move(mouse.target, mouse.speed);
     for (let fish of fishs) { setTimeout(() => { fish.move(player) }, 0) };
 }
 function renderbg(bg) {
+    bg.width = document.body.offsetWidth;
+    bg.height = window.innerHeight;
     let initbgcolor = {
         r: 0x20, g: 0xBF, b: 0xFF,
         divide(num) { this.r /= num; this.g /= num; this.b /= num },
@@ -313,15 +353,15 @@ function renderbg(bg) {
         }
     }
     initbgcolor.divide(Math.max(1, player.position[1] / 1000 + 1));
-    console.log(initbgcolor.getrgb());
+    //console.log(initbgcolor.getrgb());
     bg.element.style.background = '#' + initbgcolor.getrgb();
 }
 function redraw(fish, bg) {
 
     let obj = document.createElement("div");
     let pos = playercoord(fish.position);
-    pos[0] += bg.left + bg.width / 2;
-    pos[1] += bg.top + bg.height / 2;
+    pos[0] += bg.left + bg.width / 2 - fish.size / 2;
+    pos[1] += bg.top + bg.height / 2 - fish.size / 2;
     //使player位于background的中心位置
     obj.style.left = pos[0] + 'px';
     obj.style.top = pos[1] + 'px';
@@ -348,12 +388,13 @@ function settarget(target, speed) {
     mouse.speed = speed;
 }
 
-function inview(position, bg) {
+function inview(fish, bg) {
+    let position = playercoord(fish.position);
     position[0] += bg.left + bg.width / 2;
     position[1] += bg.top + bg.height / 2;
     //使player位于background的中心位置
-    if (position[0] > bg.left && position[0] < bg.left + bg.width && position[1] > bg.top && position[1] < bg.top + bg.height) {
-        console.log("inview");
+    if (position[0] + fish.size / 2 > bg.left && position[0] - fish.size / 2 < bg.left + bg.width && position[1] + fish.size / 2 > bg.top && position[1] - fish.size / 2 < bg.top + bg.height) {
+        //console.log("inview");
         return true;
     }
 
@@ -365,3 +406,4 @@ function removeClass(className) {
     for (let el of ele) { el.remove(); }
 }
 init();
+
