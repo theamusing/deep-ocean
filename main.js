@@ -301,22 +301,22 @@ function initfishs(num) {
 
     }
     for (let i = 0; i < num * 3 / 4; i++) {
-        fishs.push(new littlefish(Math.random() * 20 + 30, [Math.random() * 10000 - 5000, Math.random() * 10000], [1, 0]));
+        fishs.push(new littlefish(Math.random() * 20 + 30, [Math.random() * 10000 - 5000, Math.random() * 10000], [Math.random() - 0.5, 0]));
 
     }
     for (let i = 0; i < num / 12; i++) {
         let type = Math.random() * 100;
         if (type < 40) {
             let depth = Math.random() * 5000;
-            fishs.push(new makoshark(30 + Math.random() * 50 + depth / 100, [Math.random() * 10000 - 5000, depth], [1, 0]));
+            fishs.push(new makoshark(30 + Math.random() * 50 + depth / 100, [Math.random() * 10000 - 5000, depth], [Math.random() - 0.5, 0]));
         }
         else if (type < 80) {
             let depth = Math.random() * 8000;
-            fishs.push(new hammerheadshark(50 + Math.random() * 50 + depth / 50, [Math.random() * 10000 - 5000, depth], [1, 0]));
+            fishs.push(new hammerheadshark(50 + Math.random() * 50 + depth / 50, [Math.random() * 10000 - 5000, depth], [Math.random() - 0.5, 0]));
         }
         else {
             let depth = Math.random() * 5000 + 5000;
-            fishs.push(new greatwhiteshark(50 + Math.random() * 50 + depth / 10, [Math.random() * 10000 - 5000, depth], [1, 0]));
+            fishs.push(new greatwhiteshark(50 + Math.random() * 50 + depth / 10, [Math.random() * 10000 - 5000, depth], [Math.random() - 0.5, 0]));
         }
     }
     for (let fish of fishs) { fish.element = null; }
