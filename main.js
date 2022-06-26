@@ -2,7 +2,7 @@
 
 const body = document.querySelector("body");
 const framerate = 50;
-const maxfishnum = 1000;
+const maxfishnum = 30;
 
 class basefish {
     constructor(size = 1, position = [0, 0], direction = [1, 0], speed = 0) {
@@ -41,6 +41,10 @@ class basefish {
     move() {
         this._position = [this._position[0] + this._direction[0] * this.speed, this._position[1] + this._direction[1] * this.speed];
     }
+    respawn(size, position) {
+        this._size = size;
+        this._position = position;
+    }
     get rotateangle() {
         if (this._direction[0] == 0) {
             if (this._direction[1] < 0)
@@ -54,6 +58,7 @@ class basefish {
         else
             return [0, angle];
     }
+
 }
 class myfish extends basefish {
     constructor(size, position, direction, speed, health = 100, damp = 1, maxspeed = 10) {
@@ -269,16 +274,16 @@ function initbg() {
 
 function initfishs(num) {
     for (let i = 0; i < num / 6; i++) {
-        fishs.push(new jellyfish(Math.random() * 100 + 30, [Math.random() * 10000 - 5000, Math.random() * 10000]));
+        fishs.push(new jellyfish(Math.random() * 100 + 30, genRandPos(player.position,[200,200],[2000,1400])));
 
     }
     for (let i = 0; i < num * 3 / 4; i++) {
-        fishs.push(new littlefish(Math.random() * 20 + 30, [Math.random() * 10000 - 5000, Math.random() * 10000], [1, 0]));
+        fishs.push(new littlefish(Math.random() * 20 + 30, genRandPos(player.position,[200,200],[2000,1400]), [1, 0]));
 
     }
     for (let i = 0; i < num / 12; i++) {
-        let depth = Math.random() * 10000;
-        fishs.push(new shark(20 + Math.random() * 50 + depth / 10, [Math.random() * 10000 - 5000, depth], [1, 0]));
+        let pos = genRandPos(player.position,[200,200],[2000,1400]);
+        fishs.push(new shark(20 + Math.random() * 50 + pos[1] / 10, pos, [1, 0]));
 
     }
     for (let fish of fishs) { fish.element = null; }
@@ -289,10 +294,53 @@ function render(bg) {
     if (player.element != null)
         bg.element.removeChild(player.element);
     redraw(player, bg);
-    for (let fish of fishs) { setTimeout(() => { if (fish.element != null) { bg.element.removeChild(fish.element); fish.element = null; }; if (inview(playercoord(fish.position), bg)) { redraw(fish, bg) } }, 0); }
-
+    for (let fish of fishs) {
+        setTimeout(() => {
+            if (fish.element != null) {
+                bg.element.removeChild(fish.element); fish.element = null;
+            };
+            if (inview(playercoord(fish.position), bg)) {
+                redraw(fish, bg)
+            }
+        }, 0);
+    }
+    //console.log("draw done, player:" + player.position);
     player.move(mouse.target, mouse.speed);
-    for (let fish of fishs) { setTimeout(() => { fish.move(player) }, 0) };
+    for (let fish of fishs) {
+        setTimeout(() => {
+            fish.move(player)
+            let tmp = playercoord(fish.position);
+            if (Math.abs(tmp[0]) > bg.width*1.5 || Math.abs(tmp[1]) > bg.height*1.5) {
+                let newpos = genRandPos(player.position, [1000,700],[2000, 1400]);
+                let newsize;
+                switch (fish.type) {
+                    case "littlefish":
+                        newsize = Math.random() * 20 + 30;
+                        break;
+                    case "jellyfish":
+                        newsize = Math.random() * 100 + 30;
+                        break;
+                    case "shark":
+                        newsize = 20 + Math.random() * 50 + newpos[1] / 10;
+                }
+                fish.respawn(newsize, newpos);
+                console.log("respawn:" + newpos);
+                }
+        }, 0)
+    };
+}
+
+function genRandPos(position, innersize, outtersize) { //周围两矩形中间生成随机坐标
+    let x, y, tmp;
+    tmp = Math.random() * (outtersize[0] - innersize[0]) - (outtersize[0] - innersize[0]) / 2;
+    if (tmp < 0)
+        x = position[0] - innersize[0] / 2 + tmp;
+    else x = position[0] + innersize[0] / 2 + tmp;
+    tmp = Math.random() * (outtersize[1] - innersize[1]) - (outtersize[1] - innersize[1]) / 2;
+    if (tmp < 0)
+        y = position[1] - innersize[1] / 2 + tmp;
+    else y = position[1] + innersize[1] / 2 + tmp;
+    return [x, y];
 }
 function renderbg(bg) {
     let initbgcolor = {
@@ -313,7 +361,7 @@ function renderbg(bg) {
         }
     }
     initbgcolor.divide(Math.max(1, player.position[1] / 1000 + 1));
-    console.log(initbgcolor.getrgb());
+    //console.log(initbgcolor.getrgb());
     bg.element.style.background = '#' + initbgcolor.getrgb();
 }
 function redraw(fish, bg) {
@@ -353,7 +401,7 @@ function inview(position, bg) {
     position[1] += bg.top + bg.height / 2;
     //使player位于background的中心位置
     if (position[0] > bg.left && position[0] < bg.left + bg.width && position[1] > bg.top && position[1] < bg.top + bg.height) {
-        console.log("inview");
+        //console.log("inview");
         return true;
     }
 
