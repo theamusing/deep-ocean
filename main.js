@@ -364,7 +364,8 @@ class rollingbgimg {
         img.element.style.height = this._height + 'px';
         img.element.style.top = pos[1] + 'px';
         img.element.style.left = pos[0] + 'px';
-        bg.element.appendChild(img.element);
+        bg.element.insertBefore(img.element, bg.element.children[0]);
+        //bg.element.appendChild(img.element);
     }
 }
 let timer;
@@ -455,16 +456,16 @@ function render(bg) {
     for (let i = 0; i < maxfishnum; i++) { //更新鱼的状态
         let fish = fishs[i];
         setTimeout(() => {
-            fish.move(player)
+            fish.move(player);
             let tmp = playercoord(fish.position);
             if (Math.abs(tmp[0]) > bg.width * 1.5 || Math.abs(tmp[1]) > bg.height * 1.5) { //太远重新生成
                 fishs[i] = genAFish([bg.width, bg.height], bg);
                 console.log("respawn:" + fishs[i].type + "," + fishs[i].position);
             }
-            else if (Math.abs(tmp[0]) < player.size / 2 && Math.abs(tmp[1]) < player.size / 2) { //距离近判断吃
+            else if (Math.abs(tmp[0]) < player.size / 2.5 && Math.abs(tmp[1]) < player.size / 2.5) { //距离近判断吃
                 if (player.size > fish.size) {
                     bg.element.removeChild(fish.element);
-                    player.size += fish.size / 10; // TODO:差距过大时减少收益
+                    player.size += fish.size / 50; // TODO:差距过大时减少收益
                     fishs[i] = genAFish([bg.width, bg.height], bg);
                 }
             }
@@ -477,7 +478,7 @@ function genAFish(innersize, bg, rnd = undefined) { //生成一条鱼 rnd用来�
     if (rnd < 200) {
         return new jellyfish(Math.random() * 100 + 30, genRandPos(player.position, innersize, [bg.width * 2, bg.height * 2]));
     }
-    else if (rnd < 900) {
+    else if (rnd < 1100) {
         return new littlefish(Math.random() * 20 + 30, genRandPos(player.position, innersize, [bg.width * 2, bg.height * 2]), [1, 0]);
     }
     else {
