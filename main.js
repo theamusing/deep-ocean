@@ -406,3 +406,4 @@ function removeClass(className) {
     for (let el of ele) { el.remove(); }
 }
 init();
+
