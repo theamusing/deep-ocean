@@ -285,6 +285,29 @@ class swordfish extends littlefish {
     }
 }// 剑鱼
 
+class pufferfish extends littlefish {
+    constructor(size, position, direction, maxsize = 2 * size) {
+        super(size, position, direction);
+        this._type = 'pufferfish';
+        this._maxspeed = 5 + Math.random();
+        this._minspeed = 3 + Math.random();
+        this._damp = 0.2;
+        this._minsize = size;
+        this._maxsize = Math.max(maxsize, size);
+        this._awarerange = 100;
+    }
+
+    move(player) {
+        super.move(player);
+        let distance = [player.position[0] - this._position[0], player.position[1] - this.position[1]];
+        let len = Math.sqrt(distance[0] * distance[0] + distance[1] * distance[1]);
+        if (len < this._awarerange + this._minsize / 2 + player.size / 2 && player.size > this._minsize)
+            this._size = this._maxsize;
+        else
+            this._size = this._minsize;
+    }
+}// 河豚
+
 class pinkjellyfish extends jellyfish {
     constructor(size, position) {
         super(size, position);
@@ -565,7 +588,7 @@ function genAFish(innersize, bg, rnd = undefined) { //生成一条鱼 rnd用来�
             return new giantjellyfish(Math.random() * 100 + 30, genRandPos(player.position, innersize, [bg.width * 2, bg.height * 2]));
     }
     else if (rnd < 1100) {
-        return new swordfish(Math.random() * 50 + 30, genRandPos(player.position, innersize, [bg.width * 2, bg.height * 2]), [1, 0]);
+        return new pufferfish(Math.random() * 50 + 30, genRandPos(player.position, innersize, [bg.width * 2, bg.height * 2]), [1, 0]);
     }
     else {
         rnd -= 1100;
