@@ -241,13 +241,85 @@ class hammerheadshark extends shark {
         return this._maxsize;
     }
 }
+
+class lanternfish extends shark {
+    constructor(size, position, direction, maxspeed = 10, minspeed = 2, normalspeed = 4.5, maxdamp = 0.2, normaldamp = 0.01, awarerange = 150) {
+        super(size, position, direction, maxspeed, minspeed, normalspeed, maxdamp, normaldamp, awarerange);
+        this._type = 'lanternfish';
+    }
+}
+class rasborafish extends littlefish {
+    constructor(size, position, direction) {
+        super(size, position, direction);
+        this._type = 'rasborafish';
+    }
+}// 三角灯鱼
+
+class pomfretfish extends littlefish {
+    constructor(size, position, direction) {
+        super(size, position, direction);
+        this._type = 'pomfretfish';
+    }
+}// 鲳鱼
+
+class zebrafish extends littlefish {
+    constructor(size, position, direction) {
+        super(size, position, direction);
+        this._type = 'zebrafish';
+    }
+}// 斑马鱼
+
+class swordfish extends littlefish {
+    constructor(size, position, direction) {
+        super(size, position, direction);
+        this._type = 'swordfish';
+        this._maxspeed = 8 + Math.random();
+        this._minspeed = 5 + Math.random();
+        this._damp = 0.5;
+    }
+
+    move(player) {
+        super.move(player);
+        this._direction[1] = 0;
+        this._direction = super.norm(this._direction);
+    }
+}// 剑鱼
+
+class pinkjellyfish extends jellyfish {
+    constructor(size, position) {
+        super(size, position);
+        this._type = 'pinkjellyfish';
+    }
+}
+
+class bluejellyfish extends jellyfish {
+    constructor(size, position) {
+        super(size, position);
+        this._type = 'bluejellyfish';
+    }
+}
+
+class giantjellyfish extends jellyfish {
+    constructor(size, position) {
+        super(size, position);
+        this._maxspeed = 12 + Math.random();
+        this._minspeed = -3 + Math.random();
+        this._updamp = 0.5;
+        this._downdamp = 0.05;
+        this._type = 'giantjellyfish';
+    }
+}
+
 class rollingbgimg {
-    constructor(src, width, height, position = [0, 0]) {
+    constructor(src, src_sky, src_seabed, width, height, range = [0, 10000]) {
         this._src = src;
+        this._src_sky = src_sky;
+        this._src_seabed = src_seabed;
         this._width = width;
         this._height = height;
-        let img = { position: position, element: null, up: null, down: null, left: null, right: null };
+        let img = { position: [0, height / 2], element: null, up: null, down: null, left: null, right: null };
         this._imgs = [img];
+        this._range = range;
     }
     unbind(img) {
         if (img.up != null) {
@@ -354,14 +426,20 @@ class rollingbgimg {
             // bg.element.removeChild(img.element);
             img.element.remove();
         }
+        img.element = document.createElement('img');
+        img.element.style.position = 'fixed';
+        img.element.style.width = this._width + 'px';
+        img.element.style.height = this._height + 'px';
+
+        if (img.position[1] < this._range[0])
+            img.element.src = this._src_sky;
+        else if (img.position[1] > this._range[1])
+            img.element.src = this._src_seabed;
+        else
+            img.element.src = this._src;
         let pos = playercoord(img.position);
         pos[0] += bg.left + bg.width / 2 - this._width / 2;
         pos[1] += bg.top + bg.height / 2 - this._height / 2;
-        img.element = document.createElement('img');
-        img.element.style.position = 'fixed';
-        img.element.src = this._src;
-        img.element.style.width = this._width + 'px';
-        img.element.style.height = this._height + 'px';
         img.element.style.top = pos[1] + 'px';
         img.element.style.left = pos[0] + 'px';
         bg.element.insertBefore(img.element, bg.element.children[0]);
@@ -371,6 +449,8 @@ class rollingbgimg {
 let timer;
 const MinDistance = 30;
 const bgimg_path = 'imgs/bgimg.png';
+const sky_path = 'imgs/sky.png';
+const seabed_path = 'imgs/seabed.png';
 
 class mousetarget {
     constructor(target = [0, 0], speed = 0) {
@@ -410,7 +490,7 @@ function initbg() {
     playground.style.top = bg.top + 'px';
     playground.style.width = '100%';
     playground.style.height = '100%';
-    let bgimg = new rollingbgimg(bgimg_path, 5000, 5000);
+    let bgimg = new rollingbgimg(bgimg_path, sky_path, seabed_path, 5000, 5000);
     bg.rollingimg = bgimg;
     body.appendChild(playground);
     playground.addEventListener("mousemove", function (e) {
@@ -476,10 +556,16 @@ function render(bg) {
 function genAFish(innersize, bg, rnd = undefined) { //生成一条鱼 rnd用来手动控制概率
     if (rnd === undefined) { rnd = Math.random() * 1200; }
     if (rnd < 200) {
-        return new jellyfish(Math.random() * 100 + 30, genRandPos(player.position, innersize, [bg.width * 2, bg.height * 2]));
+        let type = Math.random() * 3;
+        if (type < 1.5)
+            return new pinkjellyfish(Math.random() * 50 + 30, genRandPos(player.position, innersize, [bg.width * 2, bg.height * 2]));
+        else if (type < 2.5)
+            return new bluejellyfish(Math.random() * 50 + 30, genRandPos(player.position, innersize, [bg.width * 2, bg.height * 2]));
+        else
+            return new giantjellyfish(Math.random() * 100 + 30, genRandPos(player.position, innersize, [bg.width * 2, bg.height * 2]));
     }
     else if (rnd < 1100) {
-        return new littlefish(Math.random() * 20 + 30, genRandPos(player.position, innersize, [bg.width * 2, bg.height * 2]), [1, 0]);
+        return new swordfish(Math.random() * 50 + 30, genRandPos(player.position, innersize, [bg.width * 2, bg.height * 2]), [1, 0]);
     }
     else {
         rnd -= 1100;
@@ -497,7 +583,7 @@ function genAFish(innersize, bg, rnd = undefined) { //生成一条鱼 rnd用来�
             else if (rnd < 80) {
                 return new hammerheadshark(50 + Math.random() * 50 + pos[1] / 50, pos, [1, 0]);
             }
-            else return new greatwhiteshark(50 + Math.random() * 50 + pos[1] / 10, pos, [1, 0]);
+            else return new lanternfish(50 + Math.random() * 50 + pos[1] / 10, pos, [1, 0]);
         }
         else {
             if (rnd < 66) {
