@@ -3,6 +3,7 @@
 const body = document.querySelector("body");
 const framerate = 50;
 const maxfishnum = 72;
+const maxscreensize = 500;
 
 class basefish {
     constructor(size = 1, position = [0, 0], direction = [1, 0], speed = 0) {
@@ -588,7 +589,7 @@ function genAFish(innersize, bg, rnd = undefined) { //生成一条鱼 rnd用来�
             return new giantjellyfish(Math.random() * 100 + 30, genRandPos(player.position, innersize, [bg.width * 2, bg.height * 2]));
     }
     else if (rnd < 1100) {
-        return new pufferfish(Math.random() * 50 + 30, genRandPos(player.position, innersize, [bg.width * 2, bg.height * 2]), [1, 0]);
+        return new rasborafish(Math.random() * 50 + 30, genRandPos(player.position, innersize, [bg.width * 2, bg.height * 2]), [1, 0]);
     }
     else {
         rnd -= 1100;
@@ -656,8 +657,10 @@ function redraw(fish, bg) {
 
     let obj = document.createElement("div");
     let pos = playercoord(fish.position);
-    pos[0] += bg.left + bg.width / 2 - fish.size / 2;
-    pos[1] += bg.top + bg.height / 2 - fish.size / 2;
+    pos = [screenadapt(pos[0]), screenadapt(pos[1])];
+    let size = screenadapt(fish.size);
+    pos[0] += bg.left + bg.width / 2 - size / 2;
+    pos[1] += bg.top + bg.height / 2 - size / 2;
     //使player位于background的中心位置
     obj.style.left = pos[0] + 'px';
     obj.style.top = pos[1] + 'px';
@@ -667,8 +670,8 @@ function redraw(fish, bg) {
     img.setAttribute("src", fish.imgsrc);
     rotate_hor(img, fish.rotateangle);
     obj.appendChild(img);
-    obj.style.width = fish.size + 'px';
-    obj.style.height = fish.size + 'px';
+    obj.style.width = size + 'px';
+    obj.style.height = size + 'px';
     bg.element.appendChild(obj);
     fish.element = obj;
 }
@@ -686,15 +689,24 @@ function settarget(target, speed) {
 
 function inview(fish, bg) {
     let position = playercoord(fish.position);
+    position = [screenadapt(position[0]), screenadapt(position[1])];
     position[0] += bg.left + bg.width / 2;
     position[1] += bg.top + bg.height / 2;
+    let size = screenadapt(fish.size);
     //使player位于background的中心位置
-    if (position[0] + fish.size / 2 > bg.left && position[0] - fish.size / 2 < bg.left + bg.width && position[1] + fish.size / 2 > bg.top && position[1] - fish.size / 2 < bg.top + bg.height) {
+    if (position[0] + size / 2 > bg.left && position[0] - size / 2 < bg.left + bg.width && position[1] + size / 2 > bg.top && position[1] - size / 2 < bg.top + bg.height) {
         //console.log("inview");
         return true;
     }
 
     return false;
+}
+
+function screenadapt(size) {
+    if (player.size <= maxscreensize)
+        return size;
+    else
+        return size * maxscreensize / player.size;
 }
 
 function removeClass(className) {
