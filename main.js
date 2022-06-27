@@ -13,6 +13,7 @@ class basefish {
         this._speed = speed;
         this._element = null;
         this._type = 'basefish';
+        this._score = 1; 
     }
     norm(vs) {
         let sum = 0;
@@ -41,7 +42,8 @@ class basefish {
     set direction(direction) { this._direction = norm(direction); }
     get speed() { return this._speed }
     set speed(speed) { this._speed = speed; }
-    move() {
+    get score() { return this._score; }
+     move() {
         this._position = [this._position[0] + this._direction[0] * this.speed, this._position[1] + this._direction[1] * this.speed];
     }
     getclose() {
@@ -72,14 +74,14 @@ class myfish extends basefish {
         this._damp = damp;
         this._maxspeed = maxspeed;
         this._type = 'myfish';
-        this._status = null;
+        this._statusbar = null;
     }
     get health() { return this._health }
     set health(health) { this._health = health }
     get maxspeed() { return this._maxspeed }
     set maxspeed(maxspeed) { this._maxspeed = maxspeed }
     get damp() { return this._damp }
-    get status() { return this._status; }
+    get statusbar() { return this._statusbar; }
     set damp(damp) {
         if (damp < 0) {
             throw ("err:negative damp");
@@ -90,8 +92,9 @@ class myfish extends basefish {
     }
     eat(fish) {
         // base:increase size
-        let diff = fish.size / this.size;
-        this.size += fish.size * (diff * diff) / 3;
+        let diff = fish.size / this._size;
+        this._size += fish.size * (diff * diff) / 3;
+        this._score += fish.score;
     }
     move(target, speed) {
         if (target != null && !(Math.abs(target[0] - this.position[0]) < MinDistance && Math.abs(target[1] - this.position[1]) < MinDistance)) {
@@ -115,7 +118,7 @@ class myfish extends basefish {
         let th1 = document.createElement("th");
         let td1 = document.createElement("td");
         th1.textContent = "当前位置";
-        td1.textContent = this.position[0].toFixed(0) + "," + this.position[1].toFixed(0);
+        td1.textContent = this._position[0].toFixed(0) + "," + this._position[1].toFixed(0);
         tr1.appendChild(th1);
         tr1.appendChild(td1);
         bar.appendChild(tr1);
@@ -123,11 +126,19 @@ class myfish extends basefish {
         let th2 = document.createElement("th");
         let td2 = document.createElement("td");
         th2.textContent = "当前大小";
-        td2.textContent = this.size.toFixed(0);
+        td2.textContent = this._size.toFixed(0);
         tr2.appendChild(th2);
         tr2.appendChild(td2);
         bar.appendChild(tr2);
-        this._status = bar;
+        let tr3 = document.createElement("tr");
+        let th3 = document.createElement("th");
+        let td3 = document.createElement("td");
+        th3.textContent = "分数";
+        td3.textContent = this._score.toFixed(0);
+        tr3.appendChild(th3);
+        tr3.appendChild(td3);
+        bar.appendChild(tr3);
+        this._statusbar = bar;
         bar.style.color = "#FFFFFF"
         bg.element.appendChild(bar);
     }
@@ -140,6 +151,7 @@ class littlefish extends basefish {
         this._damp = 0.02;
         this._awarerange = 200;
         this._type = 'littlefish';
+        this._score = 2;
     }
     move(player) {
         if (this._speed > this._damp)
@@ -177,6 +189,7 @@ class shark extends basefish {
         this._awarerange = awarerange;
         this._status = 0;//normal
         this._type = 'shark';
+        this._score = 100;
     }
     eat(fish) {
         // base:increase size
@@ -229,6 +242,7 @@ class jellyfish extends basefish {
         this._downdamp = 0.01;
         this._state = 0;//0:up;1:down
         this._type = 'jellyfish';
+        this._score = 20;
     }
     move(player) {
         if (this._state == 0) {
@@ -261,6 +275,7 @@ class makoshark extends shark {
         this._type = 'makoshark';
         this._maxsize = 150;
         this._size = Math.min(this._size, this._maxsize);
+        this._score = 150;
     }
     get maxsize() {
         return this._maxsize;
@@ -271,6 +286,7 @@ class greatwhiteshark extends shark {
     constructor(size, position, direction, maxspeed = 7.5, minspeed = 4.5, normalspeed = 6, maxdamp = 0.1, normaldamp = 0.01, awarerange = 300) {
         super(size, position, direction, maxspeed, minspeed, normalspeed, maxdamp, normaldamp, awarerange);
         this._type = 'greatwhiteshark';
+        this._score = 50000;
     }
 }
 
@@ -280,6 +296,7 @@ class hammerheadshark extends shark {
         this._type = 'hammerheadshark';
         this._maxsize = 300;
         this._size = Math.min(this._size, this._maxsize);
+        this._score = 200;
     }
     get maxsize() {
         return this._maxsize;
@@ -290,6 +307,7 @@ class lanternfish extends shark {
     constructor(size, position, direction, maxspeed = 10, minspeed = 2, normalspeed = 4.5, maxdamp = 0.2, normaldamp = 0.01, awarerange = 150) {
         super(size, position, direction, maxspeed, minspeed, normalspeed, maxdamp, normaldamp, awarerange);
         this._type = 'lanternfish';
+        this._score = 20000;
     }
 }
 class rasborafish extends littlefish {
@@ -320,6 +338,7 @@ class swordfish extends littlefish {
         this._maxspeed = 8 + Math.random();
         this._minspeed = 5 + Math.random();
         this._damp = 0.5;
+        this._score = 75;
     }
 
     move(player) {
@@ -339,6 +358,7 @@ class pufferfish extends littlefish {
         this._minsize = size;
         this._maxsize = Math.max(maxsize, size);
         this._awarerange = 100;
+        this._score = 30;
     }
 
     move(player) {
@@ -356,6 +376,7 @@ class pinkjellyfish extends jellyfish {
     constructor(size, position) {
         super(size, position);
         this._type = 'pinkjellyfish';
+        this._score = 35;
     }
 }
 
@@ -363,6 +384,7 @@ class bluejellyfish extends jellyfish {
     constructor(size, position) {
         super(size, position);
         this._type = 'bluejellyfish';
+        this._score = 50;
     }
 }
 
@@ -374,6 +396,7 @@ class giantjellyfish extends jellyfish {
         this._updamp = 0.5;
         this._downdamp = 0.05;
         this._type = 'giantjellyfish';
+        this._score = 100;
     }
 }
 
@@ -589,8 +612,8 @@ function render(bg) {
     bg.rollingimg.render(bg);
     if (player.element != null)
         bg.element.removeChild(player.element);
-    if (player.status != null)
-        bg.element.removeChild(player.status);
+    if (player.statusbar != null)
+        bg.element.removeChild(player.statusbar);
     player.drawstatus(bg);
     redraw(player, bg);
     for (let fish of fishs) { //生成在html中
@@ -614,7 +637,7 @@ function render(bg) {
             let alpha = (player.direction[0] * tmp[0] + player.direction[1] * tmp[1]) / distance;
             let beta = (fish.direction[0] * tmp[0] + fish.direction[1] * tmp[1]) / distance;
             let minangle = Math.min(Math.abs(alpha), Math.abs(beta));
-            let detectdis = (player.size / 2.5 + fish.size / 2.5) * (2 / 3 + 1 / 3 * minangle); //侧面时判断距离小
+            let detectdis = (player.size*0.45 + fish.size*0.4) * (2 / 3 + 1 / 3 * minangle); //侧面时判断距离小
             if (distance > bg.width * 1.5) { //太远重新生成
                 fishs[i] = genAFish([bg.width, bg.height], bg);
                 console.log("respawn:" + fishs[i].type + ",size:" + fishs[i].size);
