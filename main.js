@@ -43,9 +43,11 @@ class basefish {
     move() {
         this._position = [this._position[0] + this._direction[0] * this.speed, this._position[1] + this._direction[1] * this.speed];
     }
-    reset(size, position) { //重设 与被吃重生不同
-        this._size = size;
-        this._position = position;
+    eatenby(fish) { //fish eat this
+        // base:increase size
+        let diff = this.size / fish.size;
+        fish.size += this.size * (diff * diff) / 3;
+        console.log("current size:" + fish.size);
     }
     get rotateangle() {
         if (this._direction[0] == 0) {
@@ -69,12 +71,14 @@ class myfish extends basefish {
         this._damp = damp;
         this._maxspeed = maxspeed;
         this._type = 'myfish';
+        this._status = null;
     }
     get health() { return this._health }
     set health(health) { this._health = health }
     get maxspeed() { return this._maxspeed }
     set maxspeed(maxspeed) { this._maxspeed = maxspeed }
     get damp() { return this._damp }
+    get status() { return this._status; }
     set damp(damp) {
         if (damp < 0) {
             throw ("err:negative damp");
@@ -99,7 +103,28 @@ class myfish extends basefish {
             this._speed = 0;
         super.move();
     }
-
+    drawstatus(bg) {
+        let bar = document.createElement("table");
+        let tr1 = document.createElement("tr");
+        let th1 = document.createElement("th");
+        let td1 = document.createElement("td");
+        th1.textContent = "当前位置";
+        td1.textContent = this.position[0].toFixed(0) + "," + this.position[1].toFixed(0);
+        tr1.appendChild(th1);
+        tr1.appendChild(td1);
+        bar.appendChild(tr1);
+        let tr2 = document.createElement("tr");
+        let th2 = document.createElement("th");
+        let td2 = document.createElement("td");
+        th2.textContent = "当前大小";
+        td2.textContent = this.size.toFixed(0);
+        tr2.appendChild(th2);
+        tr2.appendChild(td2);
+        bar.appendChild(tr2);
+        this._status = bar;
+        bar.style.color = "#FFFFFF"
+        bg.element.appendChild(bar);
+    }
 }
 class littlefish extends basefish {
     constructor(size, position, direction) {
@@ -512,6 +537,7 @@ function initbg() {
 function initfishs(num, bg) {
     for (let i = 0; i < num; i++) {
         fishs.push(genAFish([200, 200], bg));
+        console.log("init " + fishs[i].type + ",size: " + fishs[i].size);
     }
     for (let fish of fishs) { fish.element = null; }
 }
@@ -521,6 +547,9 @@ function render(bg) {
     bg.rollingimg.render(bg);
     if (player.element != null)
         bg.element.removeChild(player.element);
+    if (player.status != null)
+        bg.element.removeChild(player.status);
+    player.drawstatus(bg);
     redraw(player, bg);
     for (let fish of fishs) { //生成在html中
         setTimeout(() => {
@@ -532,21 +561,28 @@ function render(bg) {
             }
         }, 0);
     }
+    
     player.move(mouse.target, mouse.speed);
     for (let i = 0; i < maxfishnum; i++) { //更新鱼的状态
         let fish = fishs[i];
         setTimeout(() => {
             fish.move(player);
             let tmp = playercoord(fish.position);
-            if (Math.abs(tmp[0]) > bg.width * 1.5 || Math.abs(tmp[1]) > bg.height * 1.5) { //太远重新生成
+            let distance = Math.sqrt(tmp[0] * tmp[0] + tmp[1] * tmp[1]);
+            if (distance > bg.width*1.5) { //太远重新生成
                 fishs[i] = genAFish([bg.width, bg.height], bg);
-                console.log("respawn:" + fishs[i].type + "," + fishs[i].position);
+                console.log("respawn:" + fishs[i].type + ",size:" + fishs[i].size);
             }
-            else if (Math.abs(tmp[0]) < player.size / 2.5 && Math.abs(tmp[1]) < player.size / 2.5) { //距离近判断吃
-                if (player.size > fish.size) {
+            else if (distance < player.size/2 + fish.size/2.5) { //距离近判断吃
+                let alpha = (player.direction[0] * tmp[0] + player.direction[1] * tmp[1]) / distance;
+                if (alpha>0.7071 && player.size > fish.size * 1.2) {
                     bg.element.removeChild(fish.element);
-                    player.size += fish.size / 50; // TODO:差距过大时减少收益
+                    fish.eatenby(player);
                     fishs[i] = genAFish([bg.width, bg.height], bg);
+                }
+                else if (fish.size > player.size * 1.2) {
+                    let v = alert("游戏结束！点击以重新开始")
+                    location.reload();
                 }
             }
         }, 0)
@@ -572,24 +608,24 @@ function genAFish(innersize, bg, rnd = undefined) { //生成一条鱼 rnd用来�
         let pos = genRandPos(player.position, innersize, [bg.width * 2, bg.height * 2]);
         if (pos[1] < 5000) {
             if (rnd < 50) {
-                return new makoshark(20 + Math.random() * 50 + pos[1] / 10, pos, [1, 0]);
+                return new makoshark(20 + Math.random() * 50 + Math.max(pos[1],0) / 10, pos, [1, 0]);
             }
-            else return new hammerheadshark(50 + Math.random() * 50 + pos[1] / 50, pos, [1, 0]);
+            else return new hammerheadshark(50 + Math.random() * 50 + Math.max(pos[1],0) / 50, pos, [1, 0]);
         }
         else if (pos[1] < 8000) {
             if (rnd < 40) {
-                return new makoshark(20 + Math.random() * 50 + pos[1] / 10, pos, [1, 0]);
+                return new makoshark(20 + Math.random() * 50 + Math.max(pos[1],0) / 10, pos, [1, 0]);
             }
             else if (rnd < 80) {
-                return new hammerheadshark(50 + Math.random() * 50 + pos[1] / 50, pos, [1, 0]);
+                return new hammerheadshark(50 + Math.random() * 50 + Math.max(pos[1],0) / 50, pos, [1, 0]);
             }
-            else return new lanternfish(50 + Math.random() * 50 + pos[1] / 10, pos, [1, 0]);
+            else return new lanternfish(50 + Math.random() * 50 + Math.max(pos[1],0) / 10, pos, [1, 0]);
         }
         else {
             if (rnd < 66) {
-                return new makoshark(20 + Math.random() * 50 + pos[1] / 10, pos, [1, 0]);
+                return new makoshark(20 + Math.random() * 50 + Math.max(pos[1],0) / 10, pos, [1, 0]);
             }
-            else return new greatwhiteshark(50 + Math.random() * 50 + pos[1] / 10, pos, [1, 0]);
+            else return new greatwhiteshark(50 + Math.random() * 50 + Math.max(pos[1],0) / 10, pos, [1, 0]);
         }
     }
 }
