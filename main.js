@@ -617,41 +617,44 @@ function render(bg) {
 
 function genAFish(innersize, bg, rnd = undefined) { //生成一条鱼 rnd用来手动控制概率
     if (rnd === undefined) { rnd = Math.random() * 1200; }
-    if (rnd < 200) {
+    if (rnd < 200) { // 16.7%
         let type = Math.random() * 3;
-        if (type < 1.5)
+        if (type < 1.5) // 50%
             return new pinkjellyfish(Math.random() * 50 + 30, genRandPos(player.position, innersize, [bg.width * 2, bg.height * 2]));
-        else if (type < 2.5)
+        else if (type < 2.5) // 33.3%
             return new bluejellyfish(Math.random() * 50 + 30, genRandPos(player.position, innersize, [bg.width * 2, bg.height * 2]));
-        else
+        else // 16.7%
             return new giantjellyfish(Math.random() * 100 + 30, genRandPos(player.position, innersize, [bg.width * 2, bg.height * 2]));
     }
-    else if (rnd < 1100) {
+    else if (rnd < 1100) { // 75%
         return new pufferfish(Math.random() * 50 + 30, genRandPos(player.position, innersize, [bg.width * 2, bg.height * 2]), [1, 0]);
     }
-    else {
+    else { // 8.3%
         rnd -= 1100;
         let pos = genRandPos(player.position, innersize, [bg.width * 2, bg.height * 2]);
         if (pos[1] < 5000) {
-            if (rnd < 50) {
+            if (rnd < 50) { // 50%
                 return new makoshark(20 + Math.random() * 50 + Math.max(pos[1],0) / 10, pos, [1, 0]);
             }
-            else return new hammerheadshark(50 + Math.random() * 50 + Math.max(pos[1],0) / 50, pos, [1, 0]);
+            else // 50%
+                return new hammerheadshark(50 + Math.random() * 50 + Math.max(pos[1], 0) / 50, pos, [1, 0]);
         }
         else if (pos[1] < 8000) {
-            if (rnd < 40) {
+            if (rnd < 40) { // 40%
                 return new makoshark(20 + Math.random() * 50 + Math.max(pos[1],0) / 10, pos, [1, 0]);
             }
-            else if (rnd < 80) {
+            else if (rnd < 80) { // 40%
                 return new hammerheadshark(50 + Math.random() * 50 + Math.max(pos[1],0) / 50, pos, [1, 0]);
             }
-            else return new lanternfish(50 + Math.random() * 50 + Math.max(pos[1],0) / 10, pos, [1, 0]);
+            else // 20%
+                return new lanternfish(50 + Math.random() * 50 + Math.max(pos[1], 0) / 10, pos, [1, 0]);
         }
         else {
-            if (rnd < 66) {
+            if (rnd < 66.7) { // 66.7%
                 return new makoshark(20 + Math.random() * 50 + Math.max(pos[1],0) / 10, pos, [1, 0]);
             }
-            else return new greatwhiteshark(50 + Math.random() * 50 + Math.max(pos[1],0) / 10, pos, [1, 0]);
+            else // 33.3%
+                return new greatwhiteshark(50 + Math.random() * 50 + Math.max(pos[1], 0) / 10, pos, [1, 0]);
         }
     }
 }
