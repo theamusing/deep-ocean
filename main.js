@@ -44,11 +44,11 @@ class basefish {
     move() {
         this._position = [this._position[0] + this._direction[0] * this.speed, this._position[1] + this._direction[1] * this.speed];
     }
-    eatenby(fish) { //fish eat this
-        // base:increase size
-        let diff = this.size / fish.size;
-        fish.size += this.size * (diff * diff) / 3;
-        console.log("current size:" + fish.size);
+    getclose() {
+
+    }
+    eat(fish) {
+        return;
     }
     get rotateangle() {
         if (this._direction[0] == 0) {
@@ -87,6 +87,11 @@ class myfish extends basefish {
         else {
             this._damp = damp;
         }
+    }
+    eat(fish) {
+        // base:increase size
+        let diff = fish.size / this.size;
+        this.size += fish.size * (diff * diff) / 3;
     }
     move(target, speed) {
         if (target != null && !(Math.abs(target[0] - this.position[0]) < MinDistance && Math.abs(target[1] - this.position[1]) < MinDistance)) {
@@ -170,7 +175,18 @@ class shark extends basefish {
         this._normaldamp = normaldamp;
         this._damp = this._normaldamp;
         this._awarerange = awarerange;
+        this._status = 0;//normal
         this._type = 'shark';
+    }
+    eat(fish) {
+        // base:increase size
+        if (this._status == 0)
+            super.eat(fish);
+        else {
+            let diff = this.size / fish.size;
+            this.size += fish.size * (diff * diff) / 3;
+            gameover();
+        }
     }
     move(player) {
         if (this._speed > this._damp)
@@ -184,6 +200,7 @@ class shark extends basefish {
             let distance = [player.position[0] - this._position[0], player.position[1] - this.position[1]];
             let len = Math.sqrt(distance[0] * distance[0] + distance[1] * distance[1]);
             if (len < this._awarerange + this._size / 2 + player.size / 2) {//hunting mod
+                this._status = 1;
                 this._damp = this._maxdamp;
                 this._speed = this._maxspeed;
                 if (player.size > this._size)
@@ -192,6 +209,7 @@ class shark extends basefish {
                     this._direction = super.norm(distance);
             }
             else {
+                this._status = 0;
                 let x = (Math.random() - 0.5) / 2, y = (Math.random() - 0.5) / 2;
                 while (x + this._direction[0] == 0 && y + this._direction[1] == 0) {
                     x = (Math.random() - 0.5) / 2;
@@ -585,7 +603,7 @@ function render(bg) {
             }
         }, 0);
     }
-    
+
     player.move(mouse.target, mouse.speed);
     for (let i = 0; i < maxfishnum; i++) { //更新鱼的状态
         let fish = fishs[i];
@@ -593,21 +611,21 @@ function render(bg) {
             fish.move(player);
             let tmp = playercoord(fish.position);
             let distance = Math.sqrt(tmp[0] * tmp[0] + tmp[1] * tmp[1]);
-            if (distance > bg.width*1.5) { //太远重新生成
+            if (distance > bg.width * 1.5) { //太远重新生成
                 fishs[i] = genAFish([bg.width, bg.height], bg);
                 console.log("respawn:" + fishs[i].type + ",size:" + fishs[i].size);
             }
-            else if (distance < player.size/2 + fish.size/2.5) { //距离近判断吃
+            else if (distance < player.size / 2 + fish.size / 2.5) { //距离近判断吃
+                fish.getclose(player);
                 let alpha = (player.direction[0] * tmp[0] + player.direction[1] * tmp[1]) / distance;
-                if (alpha>0.7071 && player.size > fish.size * 1.2) {
+                if (alpha > 0.7071 && player.size > fish.size * 1.2) {
                     bg.element.removeChild(fish.element);
-                    fish.eatenby(player);
+                    player.eat(fish);
                     fishs[i] = genAFish([bg.width, bg.height], bg);
-                }
+                }//吃
                 else if (fish.size > player.size * 1.2) {
-                    let v = alert("游戏结束！点击以重新开始")
-                    location.reload();
-                }
+                    fish.eat(player);
+                }//被吃
             }
         }, 0)
     };
@@ -632,24 +650,24 @@ function genAFish(innersize, bg, rnd = undefined) { //生成一条鱼 rnd用来�
         let pos = genRandPos(player.position, innersize, [bg.width * 2, bg.height * 2]);
         if (pos[1] < 5000) {
             if (rnd < 50) {
-                return new makoshark(20 + Math.random() * 50 + Math.max(pos[1],0) / 10, pos, [1, 0]);
+                return new makoshark(20 + Math.random() * 50 + Math.max(pos[1], 0) / 10, pos, [1, 0]);
             }
-            else return new hammerheadshark(50 + Math.random() * 50 + Math.max(pos[1],0) / 50, pos, [1, 0]);
+            else return new hammerheadshark(50 + Math.random() * 50 + Math.max(pos[1], 0) / 50, pos, [1, 0]);
         }
         else if (pos[1] < 8000) {
             if (rnd < 40) {
-                return new makoshark(20 + Math.random() * 50 + Math.max(pos[1],0) / 10, pos, [1, 0]);
+                return new makoshark(20 + Math.random() * 50 + Math.max(pos[1], 0) / 10, pos, [1, 0]);
             }
             else if (rnd < 80) {
-                return new hammerheadshark(50 + Math.random() * 50 + Math.max(pos[1],0) / 50, pos, [1, 0]);
+                return new hammerheadshark(50 + Math.random() * 50 + Math.max(pos[1], 0) / 50, pos, [1, 0]);
             }
-            else return new lanternfish(50 + Math.random() * 50 + Math.max(pos[1],0) / 10, pos, [1, 0]);
+            else return new lanternfish(50 + Math.random() * 50 + Math.max(pos[1], 0) / 10, pos, [1, 0]);
         }
         else {
             if (rnd < 66) {
-                return new makoshark(20 + Math.random() * 50 + Math.max(pos[1],0) / 10, pos, [1, 0]);
+                return new makoshark(20 + Math.random() * 50 + Math.max(pos[1], 0) / 10, pos, [1, 0]);
             }
-            else return new greatwhiteshark(50 + Math.random() * 50 + Math.max(pos[1],0) / 10, pos, [1, 0]);
+            else return new greatwhiteshark(50 + Math.random() * 50 + Math.max(pos[1], 0) / 10, pos, [1, 0]);
         }
     }
 }
@@ -748,5 +766,10 @@ function screenadapt(size) {
 function removeClass(className) {
     var ele = document.getElementsByClassName(className);
     for (let el of ele) { el.remove(); }
+}
+
+function gameover() {
+    let v = alert("游戏结束！点击以重新开始")
+    location.reload();
 }
 init();
