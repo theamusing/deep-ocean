@@ -611,13 +611,15 @@ function render(bg) {
             fish.move(player);
             let tmp = playercoord(fish.position);
             let distance = Math.sqrt(tmp[0] * tmp[0] + tmp[1] * tmp[1]);
+            let alpha = (player.direction[0] * tmp[0] + player.direction[1] * tmp[1]) / distance;
+            let beta = (fish.direction[0] * tmp[0] + fish.direction[1] * tmp[1]) / distance;
+            let minangle = Math.min(Math.abs(alpha), Math.abs(beta));
+            let detectdis = (player.size / 2.5 + fish.size / 2.5) * (2 / 3 + 1 / 3 * minangle); //侧面时判断距离小
             if (distance > bg.width * 1.5) { //太远重新生成
                 fishs[i] = genAFish([bg.width, bg.height], bg);
                 console.log("respawn:" + fishs[i].type + ",size:" + fishs[i].size);
             }
-            else if (distance < player.size / 2 + fish.size / 2.5) { //距离近判断吃
-                fish.getclose(player);
-                let alpha = (player.direction[0] * tmp[0] + player.direction[1] * tmp[1]) / distance;
+            else if (distance < detectdis) { //距离近判断吃
                 if (alpha > 0.7071 && player.size > fish.size * 1.2) {
                     bg.element.removeChild(fish.element);
                     player.eat(fish);
