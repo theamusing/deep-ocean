@@ -85,8 +85,11 @@ class myfish extends basefish {
         this._maxspeed = maxspeed;
         this._type = 'myfish';
         this._statusbar = null;
+        this._dashable = true;
     }
     get health() { return this._health }
+    get dashable() { return this._dashable }
+    set dashable(d) { this._dashable = d }
     set health(health) { this._health = health }
     get maxspeed() { return this._maxspeed }
     set maxspeed(maxspeed) { this._maxspeed = maxspeed }
@@ -98,6 +101,24 @@ class myfish extends basefish {
         }
         else {
             this._damp = damp;
+        }
+    }
+    dash() {
+        if (this.dashable) {
+            let cd = 2000;
+            let maxspeed = this.maxspeed;
+            let dashspeed = this.maxspeed * 3;
+            this.maxspeed = dashspeed;
+            this.speed = this.maxspeed;
+            this.dashable = false;
+            let timer = setInterval(() => {
+                this.maxspeed = Math.max(maxspeed, this.maxspeed - (dashspeed - maxspeed) / 10);
+            }, 50);
+            setTimeout(() => {
+                this.dashable = true;
+                this.maxspeed = maxspeed;
+                clearInterval(timer);
+            }, cd);
         }
     }
     eat(fish) {
@@ -335,8 +356,6 @@ class ghostshark extends shark {
     constructor(size, position, direction, maxspeed = 9, minspeed = 3.5, normalspeed = 4.5, maxdamp = 0.2, normaldamp = 0.01, awarerange = 150) {
         super(size, position, direction, maxspeed, minspeed, normalspeed, maxdamp, normaldamp, awarerange);
         this._type = 'ghostshark';
-        this._maxsize = 500;
-        this._size = Math.min(this._size, this._maxsize);
         this._score = 200;
     }
     get maxsize() {
@@ -463,8 +482,8 @@ class ruberfish extends littlefish {
     constructor(size, position, direction) {
         super(size, position, direction);
         this._type = 'ruberfish';
-        this._maxspeed = 8 + Math.random();
-        this._minspeed = 5 + Math.random();
+        this._maxspeed = 9 + Math.random();
+        this._minspeed = 6 + Math.random();
         this._damp = 0.5;
         this._score = 5000;
     }
@@ -659,7 +678,7 @@ class mousetarget {
 }
 
 //init player
-let player = new myfish(50, [0, 500], [1, 0], 0, 100, 0.5, 8);
+let player = new myfish(50, [0, 500], [1, 0], 0, 100, 0.5, 7);
 let fishs = [];
 
 
@@ -695,7 +714,10 @@ function initbg() {
             settarget(target, speed);
         }
 
-    })//设置鼠标控制方式
+    });//设置鼠标控制方式
+    playground.addEventListener("mousedown", function () {
+        player.dash();
+    });
 
     return bg;
 }
@@ -703,7 +725,7 @@ function initbg() {
 function initfishs(num, bg) {
     for (let i = 0; i < num; i++) {
         fishs.push(genAFish([200, 200], bg));
-        console.log("init " + fishs[i].type + ",size: " + fishs[i].size);
+        // console.log("init " + fishs[i].type + ",size: " + fishs[i].size);
     }
     for (let fish of fishs) { fish.element = null; }
 }
@@ -741,7 +763,7 @@ function render(bg) {
             let detectdis = (player.size * 0.45 + fish.size * 0.4) * (2 / 3 + 1 / 3 * minangle); //侧面时判断距离小
             if (distance > bg.width * 1.5) { //太远重新生成
                 fishs[i] = genAFish([bg.width, bg.height], bg);
-                console.log("respawn:" + fishs[i].type + ",size:" + fishs[i].size);
+                // console.log("respawn:" + fishs[i].type + ",size:" + fishs[i].size);
             }
             else if (distance < detectdis) { //距离近判断吃
                 if (alpha > 0.7071 && player.size > fish.size * 1.2) {
@@ -922,7 +944,7 @@ function removeClass(className) {
 }
 
 function gameover() {
-    let v = alert("游戏结束！点击以重新开始")
+    let v = alert("游戏结束！点击以重新开始");
     location.reload();
 }
 init();
