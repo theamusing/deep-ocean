@@ -196,8 +196,8 @@ class shark extends basefish {
         if (this._status == 0)
             super.eat(fish);
         else {
-            let diff = this.size / fish.size;
-            this.size += fish.size * (diff * diff) / 3;
+            let diff = this._size / fish.size;
+            this._size += fish.size * (diff * diff) / 3;
             gameover();
         }
     }
