@@ -912,7 +912,7 @@ function genAFish(innersize, bg, rnd = undefined) { //生成一条鱼 rnd用来�
         else if (rnd < 8750) { //4% max2
             if (limitnum[0] < 2) {
                 limitnum[0]++;
-                return new giantjellyfish(400 + Math.random() * 100, pos, direction);
+                return new giantjellyfish(600 + Math.random() * 200, pos, direction);
             } else return new bluejellyfish(100 + Math.random() * 100, pos, direction);
         }
         else if (rnd < 8800) { //2% max1
