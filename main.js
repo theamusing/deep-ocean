@@ -158,16 +158,11 @@ class myfish extends basefish {
     initstatus(bg) {
         let div = document.createElement("div");
         let bar = document.createElement("table");
-        div.appendChild(bar);
-        let tr0 = document.createElement("tr");
-        let th0 = document.createElement("th");
-        let td0 = document.createElement("td");
-        th0.textContent = "血量";
-        td0.style.width = "0px";
-        td0.style.background = "#FFFFFF";
-        tr0.appendChild(th0);
-        tr0.appendChild(td0);
-        bar.appendChild(tr0);
+        let div0 = document.createElement("div");
+        div0.style.width = "0px";
+        div0.style.height = "1.5%";
+        div0.style.background = "#FFFFFF";
+        bg.element.appendChild(div0);
         let tr1 = document.createElement("tr");
         let th1 = document.createElement("th");
         let td1 = document.createElement("td");
@@ -193,11 +188,18 @@ class myfish extends basefish {
         tr3.appendChild(td3);
         bar.appendChild(tr3);
         bar.style.color = "#FFFFFF"
-        body.appendChild(div);
-        let maxwidth = bg.width - tr0.offsetWidth;
-        console.log(maxwidth);
+        div.appendChild(bar);
+        div.style.top = "2%";
+        bg.element.appendChild(div);
+        let maxwidth = bg.width;
         return function Update() {
-            td0.style.width = (this._health / 100 * maxwidth).toFixed(0) + "px";
+            div0.style.width = this._health.toFixed(2) + "%";
+            div0.style.margin = "0px " + ((100 - this._health) / 2).toFixed(2) + "%";
+            let color = 0xFF * this._health / 100;
+            let HEX = parseInt(color).toString(16);
+            if (HEX.length < 2)
+                HEX = "0" + HEX;
+            div0.style.background = "#FF" + HEX + HEX;
             td1.textContent = this._position[1].toFixed(0);
             td2.textContent = this._size.toFixed(0);
             td3.textContent = this._score.toFixed(0);
