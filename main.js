@@ -2,7 +2,7 @@
 
 const body = document.querySelector("body");
 const framerate = 50;
-const maxfishnum = 36;
+const maxfishnum = 72;
 const maxscreensize = 500;
 const range = [0, 10000];
 
@@ -106,6 +106,12 @@ class myfish extends basefish {
         this._size += fish.size * diff / 10;
         this._score += fish.score;
         this._health = Math.min(100, this._health + fish.heal);
+    }
+    hurted() {
+        this._type = "myfish_hurted";
+        setTimeout(() => {
+            this._type = "myfish";
+        }, 200);
     }
     move(target, speed) {
         if (target != null && !(Math.abs(target[0] - this.position[0]) < MinDistance && Math.abs(target[1] - this.position[1]) < MinDistance)) {
@@ -225,9 +231,10 @@ class shark extends basefish {
             player.health -= this.size / 10;
             player.lockhealth = true;
             let deltatime = 500;//ms
-            let temptimer = setTimeout(() => {
+            setTimeout(() => {
                 player.lockhealth = false;
             }, deltatime);
+            player.hurted();
         }
     }
     move(player) {
@@ -301,6 +308,7 @@ class jellyfish extends basefish {
             let temptimer = setTimeout(() => {
                 player.lockhealth = false;
             }, deltatime);
+            player.hurted();
         }
     }
     get rotateangle() {
@@ -312,7 +320,7 @@ class jellyfish extends basefish {
     }
 }
 class makoshark extends shark {
-    constructor(size, position, direction, maxspeed = 6, minspeed = 3.5, normalspeed = 4.5, maxdamp = 0.1, normaldamp = 0.01, awarerange = 150) {
+    constructor(size, position, direction, maxspeed = 9, minspeed = 3.5, normalspeed = 4.5, maxdamp = 0.2, normaldamp = 0.01, awarerange = 150) {
         super(size, position, direction, maxspeed, minspeed, normalspeed, maxdamp, normaldamp, awarerange);
         this._type = 'makoshark';
         this._maxsize = 150;
@@ -323,7 +331,18 @@ class makoshark extends shark {
         return this._maxsize;
     }
 }
-
+class ghostshark extends shark {
+    constructor(size, position, direction, maxspeed = 9, minspeed = 3.5, normalspeed = 4.5, maxdamp = 0.2, normaldamp = 0.01, awarerange = 150) {
+        super(size, position, direction, maxspeed, minspeed, normalspeed, maxdamp, normaldamp, awarerange);
+        this._type = 'ghostshark';
+        this._maxsize = 500;
+        this._size = Math.min(this._size, this._maxsize);
+        this._score = 200;
+    }
+    get maxsize() {
+        return this._maxsize;
+    }
+}
 class greatwhiteshark extends shark {
     constructor(size, position, direction, maxspeed = 7.5, minspeed = 4.5, normalspeed = 6, maxdamp = 0.1, normaldamp = 0.01, awarerange = 300) {
         super(size, position, direction, maxspeed, minspeed, normalspeed, maxdamp, normaldamp, awarerange);
@@ -333,7 +352,7 @@ class greatwhiteshark extends shark {
 }
 
 class hammerheadshark extends shark {
-    constructor(size, position, direction, maxspeed = 7, minspeed = 4, normalspeed = 5.5, maxdamp = 0.15, normaldamp = 0.01, awarerange = 200) {
+    constructor(size, position, direction, maxspeed = 8, minspeed = 4, normalspeed = 5.5, maxdamp = 0.2, normaldamp = 0.01, awarerange = 200) {
         super(size, position, direction, maxspeed, minspeed, normalspeed, maxdamp, normaldamp, awarerange);
         this._type = 'hammerheadshark';
         this._maxsize = 300;
@@ -380,7 +399,7 @@ class swordfish extends littlefish {
         this._maxspeed = 8 + Math.random();
         this._minspeed = 5 + Math.random();
         this._damp = 0.5;
-        this._score = 75;
+        this._score = 300;
     }
 
     move(player) {
@@ -410,6 +429,7 @@ class pufferfish extends littlefish {
             let temptimer = setTimeout(() => {
                 player.lockhealth = false;
             }, deltatime);
+            player.hurted();
         }
     }
     move(player) {
@@ -439,7 +459,17 @@ class moonfish extends littlefish {
         this._direction = super.norm(this._direction);
     }
 }// 翻车鱼
+class ruberfish extends littlefish {
+    constructor(size, position, direction) {
+        super(size, position, direction);
+        this._type = 'ruberfish';
+        this._maxspeed = 8 + Math.random();
+        this._minspeed = 5 + Math.random();
+        this._damp = 0.5;
+        this._score = 5000;
+    }
 
+}// 宝石鱼
 class pinkjellyfish extends jellyfish {
     constructor(size, position) {
         super(size, position);
@@ -714,15 +744,17 @@ function render(bg) {
                 console.log("respawn:" + fishs[i].type + ",size:" + fishs[i].size);
             }
             else if (distance < detectdis) { //距离近判断吃
-                fish.getclose(player);
                 if (alpha > 0.7071 && player.size > fish.size * 1.2) {
                     bg.element.removeChild(fish.element);
                     player.eat(fish);
                     fishs[i] = genAFish([bg.width, bg.height], bg);
                 }//吃
-                else if (fish.size > player.size * 1.2) {
-                    fish.eat(player);
-                }//被吃
+                else {
+                    fish.getclose(player);
+                }
+                // else if (fish.size > player.size * 1.2) {
+                //     fish.eat(player);
+                // }//被吃
             }
         }, 0)
     };
@@ -748,7 +780,7 @@ function genAFish(innersize, bg, rnd = undefined) { //生成一条鱼 rnd用来�
         else if (type < 2.5)
             return new rasborafish(Math.random() * 50 + 15, genRandPos(player.position, innersize, [bg.width * 2, bg.height * 2]), [1, 0]);
         else
-            return new moonfish(Math.random() * 100 + 100, genRandPos(player.position, innersize, [bg.width * 2, bg.height * 2]), [1, 0]);
+            return new ruberfish(player.size / 2, genRandPos(player.position, innersize, [bg.width * 2, bg.height * 2]), [1, 0]);
     }
     else { // 8.3%
         rnd -= 1100;
@@ -768,7 +800,7 @@ function genAFish(innersize, bg, rnd = undefined) { //生成一条鱼 rnd用来�
                 return new hammerheadshark(50 + Math.random() * 50 + Math.max(pos[1], 0) / 50, pos, [1, 0]);
             }
             else // 20%
-                return new lanternfish(50 + Math.random() * 50 + Math.max(pos[1], 0) / 10, pos, [1, 0]);
+                return new ghostshark(50 + Math.random() * 50 + Math.max(pos[1], 0) / 10, pos, [1, 0]);
         }
         else {
             if (rnd < 66.7) { // 66.7%
@@ -875,6 +907,13 @@ function screenadapt(size) {
         return size;
     else
         return size * maxscreensize / player.size;
+}
+
+function worldadapt(size) {
+    if (player.size <= maxscreensize)
+        return size;
+    else
+        return size * player.size / maxscreensize;
 }
 
 function removeClass(className) {
