@@ -156,7 +156,9 @@ class myfish extends basefish {
         super.move();
     }
     initstatus(bg) {
+        let div = document.createElement("div");
         let bar = document.createElement("table");
+        div.appendChild(bar);
         let tr0 = document.createElement("tr");
         let th0 = document.createElement("th");
         let td0 = document.createElement("td");
@@ -191,7 +193,7 @@ class myfish extends basefish {
         tr3.appendChild(td3);
         bar.appendChild(tr3);
         bar.style.color = "#FFFFFF"
-        bg.element.appendChild(bar);
+        body.appendChild(div);
         let maxwidth = bg.width - tr0.offsetWidth;
         console.log(maxwidth);
         return function Update() {
@@ -735,7 +737,7 @@ function initfishs(num, bg) {
     for (let fish of fishs) { fish.element = null; }
 }
 
-function render(bg) {   
+function render(bg) {
     renderbg(bg);
     bg.rollingimg.render(bg);
     if (player.element != null)
