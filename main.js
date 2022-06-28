@@ -84,14 +84,15 @@ class myfish extends basefish {
         this._damp = damp;
         this._maxspeed = maxspeed;
         this._type = 'myfish';
-        this._statusbar = null;
+        this._updatestatus = null;
     }
     get health() { return this._health }
     set health(health) { this._health = health }
     get maxspeed() { return this._maxspeed }
     set maxspeed(maxspeed) { this._maxspeed = maxspeed }
     get damp() { return this._damp }
-    get statusbar() { return this._statusbar; }
+    get updatestatus() { return this._updatestatus; }
+    set updatestatus(updatestatus) { this._updatestatus = updatestatus; }
     set damp(damp) {
         if (damp < 0) {
             throw ("err:negative damp");
@@ -129,13 +130,22 @@ class myfish extends basefish {
             this._speed = 0;
         super.move();
     }
-    drawstatus(bg) {
+    initstatus(bg) {
         let bar = document.createElement("table");
+        let tr0 = document.createElement("tr");
+        let th0 = document.createElement("th");
+        let td0 = document.createElement("td");
+        th0.textContent = "血量";
+        td0.style.width = "0px";
+        td0.style.background = "#FFFFFF";
+        tr0.appendChild(th0);
+        tr0.appendChild(td0);
+        bar.appendChild(tr0);
         let tr1 = document.createElement("tr");
         let th1 = document.createElement("th");
         let td1 = document.createElement("td");
-        th1.textContent = "当前位置";
-        td1.textContent = this._position[0].toFixed(0) + "," + this._position[1].toFixed(0);
+        th1.textContent = "当前深度";
+        td1.textContent = this._position[1].toFixed(0);
         tr1.appendChild(th1);
         tr1.appendChild(td1);
         bar.appendChild(tr1);
@@ -155,17 +165,16 @@ class myfish extends basefish {
         tr3.appendChild(th3);
         tr3.appendChild(td3);
         bar.appendChild(tr3);
-        let tr4 = document.createElement("tr");
-        let th4 = document.createElement("th");
-        let td4 = document.createElement("td");
-        th4.textContent = "血量";
-        td4.textContent = this._health.toFixed(0);
-        tr4.appendChild(th4);
-        tr4.appendChild(td4);
-        bar.appendChild(tr4);
-        this._statusbar = bar;
         bar.style.color = "#FFFFFF"
         bg.element.appendChild(bar);
+        let maxwidth = bg.width - tr0.offsetWidth;
+        console.log(maxwidth);
+        return function Update() {
+            td0.style.width = (this._health / 100 * maxwidth).toFixed(0) + "px";
+            td1.textContent = this._position[1].toFixed(0);
+            td2.textContent = this._size.toFixed(0);
+            td3.textContent = this._score.toFixed(0);
+        }
     }
 }
 class littlefish extends basefish {
@@ -652,11 +661,13 @@ class mousetarget {
 let player = new myfish(50, [0, 500], [1, 0], 0, 100, 0.5, 8);
 let fishs = [];
 let limitnum = [0, 0]; //giantjellyfish/greatwhiteshark
+let reloading = false;
 
 let mouse = new mousetarget();//鼠标控制移动
 
 function init() {
     let bg = initbg();
+    player.updatestatus = player.initstatus(bg);
     let fishnum = maxfishnum;
     initfishs(fishnum, bg);
     timer = setInterval(() => { render(bg) }, framerate);
@@ -692,20 +703,19 @@ function initbg() {
 
 function initfishs(num, bg) {
     for (let i = 0; i < num; i++) {
-        fishs.push(genAFish([200, 200], bg));
-        console.log("init " + fishs[i].type + ",size: " + fishs[i].size);
+        fishs.push(genAFish([200, 200], [bg.width * 2, bg.height * 2]));
+        console.log("init " + fishs[i].type + ",pos: " + fishs[i].position);
     }
     for (let fish of fishs) { fish.element = null; }
 }
 
-function render(bg) {
+function render(bg) {   
     renderbg(bg);
     bg.rollingimg.render(bg);
     if (player.element != null)
         bg.element.removeChild(player.element);
-    if (player.statusbar != null)
-        bg.element.removeChild(player.statusbar);
-    player.drawstatus(bg);
+    if (player.updatestatus != null)
+        player.updatestatus();
     redraw(player, bg);
     for (let fish of fishs) { //生成在html中
         setTimeout(() => {
@@ -729,12 +739,13 @@ function render(bg) {
             let beta = (fish.direction[0] * tmp[0] + fish.direction[1] * tmp[1]) / distance;
             let minangle = Math.min(Math.abs(alpha), Math.abs(beta));
             let detectdis = (player.size * 0.45 + fish.size * 0.4) * (2 / 3 + 1 / 3 * minangle); //侧面时判断距离小
-            if (distance > bg.width * 1.5) { //太远重新生成
+            let worldsize = [worldadapt(bg.width), worldadapt(bg.height)];
+            if (distance > worldsize[0] * 1.5) { //太远重新生成
                 if (fishs[i].type === "giantjellyfish")
                     limitnum[0]--;
                 else if (fishs[i].type === "greatwhiteshark")
                     limitnum[1]--;
-                fishs[i] = genAFish([bg.width, bg.height], bg);
+                fishs[i] = genAFish([worldsize[0], worldsize[1]], [worldsize[0] * 2, worldsize[1] * 2]);
             }
             else if (distance < detectdis) { //距离近判断吃
                 if (alpha > 0.7071 && player.size > fish.size * 1.2) {
@@ -744,7 +755,7 @@ function render(bg) {
                         limitnum[0]--;
                     else if (fish.type === "greatwhiteshark")
                         limitnum[1]--;
-                    fishs[i] = genAFish([bg.width, bg.height], bg);
+                    fishs[i] = genAFish([worldsize[0], worldsize[1]], [worldsize[0] * 2, worldsize[1] * 2]);
                 }//吃
                 else if (player.size * 1.1 < fish.size){
                     fish.getclose(player);
@@ -754,8 +765,8 @@ function render(bg) {
     };
 }
 
-function genAFish(innersize, bg, rnd = undefined) { //生成一条鱼 rnd用来手动控制概率
-    let pos = genRandPos(player.position, innersize, [bg.width * 2, bg.height * 2]);
+function genAFish(innersize, outtersize, rnd = undefined) { //生成一条鱼 rnd用来手动控制概率
+    let pos = genRandPos(player.position, innersize, outtersize);
     if (rnd === undefined) { rnd = Math.random() * 10000; }
     if (pos[1] < 3000) {
         if (rnd < 2400) { //24%
@@ -1012,7 +1023,10 @@ function removeClass(className) {
 }
 
 function gameover() {
-    let v = alert("游戏结束！点击以重新开始")
-    location.reload();
+    if (!reloading) {
+        let v = alert("游戏结束！点击以重新开始")
+        reloading = true;
+        location.reload();
+    }
 }
 init();
