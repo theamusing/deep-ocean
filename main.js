@@ -51,10 +51,14 @@ class basefish {
     set lockhealth(f) { this._lockhealth = f; }
     move() {
         this._position = [this._position[0] + this._direction[0] * this.speed, this._position[1] + this._direction[1] * this.speed];
-        if (this._position[1] < range[0])
+        if (this._position[1] < range[0]) {
             this._position[1] = range[0];
-        if (this._position[1] > range[1])
+            this._direction = this.norm([this._direction[0], 0.1]);
+        }
+        if (this._position[1] > range[1]) {
             this._position[1] = range[1];
+            this._direction = this.norm([this._direction[0], -0.1]);
+        }
     }
     getclose(player) {
         return;
@@ -777,149 +781,154 @@ function render(bg) {
 }
 
 function genAFish(innersize, bg, rnd = undefined) { //生成一条鱼 rnd用来手动控制概率
+    let direction;
+    if (Math.random() > 0.5)
+        direction = [1, 0];
+    else
+        direction = [-1, 0];
     let pos = genRandPos(player.position, innersize, [bg.width * 2, bg.height * 2]);
     if (rnd === undefined) { rnd = Math.random() * 10000; }
     if (pos[1] < 3000) {
-        if (rnd < 2400) { //24%
-            return new pomfretfish(20 + Math.random() * 20, pos, [1, 0]);
+        if (rnd < 3000) { //24%
+            return new pomfretfish(20 + Math.random() * 20, pos, direction);
         }
-        else if (rnd < 4800) { //48%
-            return new rasborafish(40 + Math.random() * 40, pos, [1, 0]);
+        else if (rnd < 5400) { //48%
+            return new rasborafish(40 + Math.random() * 40, pos, direction);
         }
         else if (rnd < 7200) { //72%
-            return new zebrafish(50 + Math.random() * 50, pos, [1, 0]);
+            return new zebrafish(30 + Math.random() * 50, pos, direction);
         }
         else if (rnd < 7900) { //7% 
-            return new pufferfish(30 + Math.random() * 30, pos, [1, 0]);
+            return new pufferfish(30 + Math.random() * 30, pos, direction);
         }
         else if (rnd < 8600) { //7%
-            return new pinkjellyfish(30 + Math.random() * 70, pos, [1, 0]);
+            return new pinkjellyfish(30 + Math.random() * 70, pos, direction);
         }
         else if (rnd < 9975) { //13.75%
-            return new makoshark(80 + Math.random() * 70, pos, [1, 0]);
+            return new makoshark(80 + Math.random() * 70, pos, direction);
         }
         else { //0.25%
-            return new ruberfish(15 + player.size / 10, pos, [1, 0]);
+            return new ruberfish(15 + player.size / 10, pos, direction);
         }
     }
     else if (pos[1] < 6000) {
-        if (rnd < 1600) { //16%
-            return new pomfretfish(30 + Math.random() * 10, pos, [1, 0]);
+        if (rnd < 2400) { //18%
+            return new pomfretfish(30 + Math.random() * 10, pos, direction);
         }
-        else if (rnd < 3200) { //16%
-            return new rasborafish(50 + Math.random() * 30, pos, [1, 0]);
+        else if (rnd < 4200) { //18%
+            return new rasborafish(40 + Math.random() * 30, pos, direction);
         }
-        else if (rnd < 4800) { //16%
-            return new zebrafish(65 + Math.random() * 35, pos, [1, 0]);
+        else if (rnd < 5400) { //18%
+            return new zebrafish(50 + Math.random() * 35, pos, direction);
         }
-        else if (rnd < 5800) { //10%
-            return new swordfish(75 + Math.random() * 75, pos, [1, 0]);
+        else if (rnd < 6400) { //10%
+            return new swordfish(75 + Math.random() * 75, pos, direction);
         }
-        else if (rnd < 7000) { //12%
-            return new makoshark(120 + Math.random() * 80, pos, [1, 0]);
+        else if (rnd < 7400) { //10%
+            return new makoshark(120 + Math.random() * 80, pos, direction);
         }
-        else if (rnd < 7800) { //8%
-            return new hammerheadshark(240 + Math.random() * 60, pos, [1, 0]);
+        else if (rnd < 8200) { //8%
+            return new hammerheadshark(240 + Math.random() * 60, pos, direction);
         }
-        else if (rnd < 9200) { //14%
-            return new pinkjellyfish(40 + Math.random() * 80, pos, [1, 0]);
+        else if (rnd < 9300) { //14%
+            return new pinkjellyfish(40 + Math.random() * 80, pos, direction);
         }
         else if (rnd < 9950) { //7.5%
-            return new pufferfish(90 + Math.random() * 35, pos, [1, 0]);
+            return new pufferfish(90 + Math.random() * 35, pos, direction);
         }
         else { //0.5%
-            return new ruberfish(15 + player.size / 10, pos, [1, 0]);
+            return new ruberfish(15 + player.size / 10, pos, direction);
         }
     }
     else if (pos[1] < 8000) {
-        if (rnd < 500) { //5%
-            return new pomfretfish(30 + Math.random() * 15, pos, [1, 0]);
+        if (rnd < 1500) { //5%
+            return new pomfretfish(30 + Math.random() * 15, pos, direction);
         }
-        else if (rnd < 1000) { //5%
-            return new rasborafish(60 + Math.random() * 30, pos, [1, 0]);
+        else if (rnd < 3200) { //5%
+            return new rasborafish(50 + Math.random() * 30, pos, direction);
         }
-        else if (rnd < 1500) { //5%
-            return new zebrafish(75 + Math.random() * 35, pos, [1, 0]);
+        else if (rnd < 4600) { //5%
+            return new zebrafish(60 + Math.random() * 35, pos, direction);
         }
-        else if (rnd < 2000) { //5%
-            return new pufferfish(90 + Math.random() * 35, pos, [1, 0]);
+        else if (rnd < 5100) { //5%
+            return new pufferfish(90 + Math.random() * 35, pos, direction);
         }
-        else if (rnd < 2600) { //6%
-            return new makoshark(150 + Math.random() * 50, pos, [1, 0]);
+        else if (rnd < 5700) { //6%
+            return new makoshark(150 + Math.random() * 50, pos, direction);
         }
-        else if (rnd < 3800) { //12%
-            return new hammerheadshark(250 + Math.random() * 100, pos, [1, 0]);
+        else if (rnd < 6200) { //12%
+            return new hammerheadshark(200 + Math.random() * 100, pos, direction);
         }
-        else if (rnd < 4800) { //10%
-            return new ghostshark(350 + Math.random() * 100, pos, [1, 0]);
+        else if (rnd < 6500) { //10%
+            return new ghostshark(300 + Math.random() * 100, pos, direction);
         }
-        else if (rnd < 6200) { //14%
-            return new bluejellyfish(80 + Math.random() * 80, pos, [1, 0]);
+        else if (rnd < 7200) { //14%
+            return new bluejellyfish(80 + Math.random() * 80, pos, direction);
         }
-        else if (rnd < 6700) { //5%
-            return new pinkjellyfish(40 + Math.random() * 40, pos, [1, 0]);
+        else if (rnd < 7700) { //5%
+            return new pinkjellyfish(40 + Math.random() * 40, pos, direction);
         }
-        else if (rnd < 7000) { //3%
-            return new giantjellyfish(240 + Math.random() * 120, pos, [1, 0]);
+        else if (rnd < 7800) { //3%
+            return new giantjellyfish(240 + Math.random() * 120, pos, direction);
         }
-        else if (rnd < 7500) { //5%
-            return new lanternfish(450 + Math.random() * 100, pos, [1, 0]);
+        else if (rnd < 7900) { //5%
+            return new lanternfish(400 + Math.random() * 100, pos, direction);
         }
         else if (rnd < 8700) { //12%
-            return new moonfish(150 + Math.random() * 100, pos, [1, 0]);
+            return new moonfish(150 + Math.random() * 100, pos, direction);
         }
         else if (rnd < 9925) { //12.25%
-            return new swordfish(100 + Math.random() * 50, pos, [1, 0]);
+            return new swordfish(100 + Math.random() * 50, pos, direction);
         }
         else { //0.75%
-            return new ruberfish(15 + player.size / 10, pos, [1, 0]);
+            return new ruberfish(15 + player.size / 10, pos, direction);
         }
     }
     else {
-        if (rnd < 500) { //5%
-            return new pomfretfish(30 + Math.random() * 15, pos, [1, 0]);
+        if (rnd < 4000) { //5%
+            return new pomfretfish(30 + Math.random() * 15, pos, direction);
         }
-        else if (rnd < 1000) { //5%
-            return new rasborafish(60 + Math.random() * 30, pos, [1, 0]);
+        else if (rnd < 4800) { //5%
+            return new rasborafish(60 + Math.random() * 30, pos, direction);
         }
-        else if (rnd < 1500) { //5%
-            return new zebrafish(75 + Math.random() * 35, pos, [1, 0]);
+        else if (rnd < 5300) { //5%
+            return new zebrafish(75 + Math.random() * 35, pos, direction);
         }
-        else if (rnd < 3000) { //15%
-            return new swordfish(100 + Math.random() * 50, pos, [1, 0]);
+        else if (rnd < 6000) { //15%
+            return new swordfish(100 + Math.random() * 50, pos, direction);
         }
-        else if (rnd < 3500) { //5%
-            return new pufferfish(100 + Math.random() * 40, pos, [1, 0]);
+        else if (rnd < 6100) { //5%
+            return new pufferfish(100 + Math.random() * 40, pos, direction);
         }
-        else if (rnd < 4000) { //5%
-            return new pinkjellyfish(50 + Math.random() * 50, pos, [1, 0]);
+        else if (rnd < 7100) { //5%
+            return new pinkjellyfish(50 + Math.random() * 50, pos, direction);
         }
-        else if (rnd < 5500) { //15%
-            return new bluejellyfish(100 + Math.random() * 100, pos, [1, 0]);
+        else if (rnd < 8600) { //15%
+            return new bluejellyfish(100 + Math.random() * 100, pos, direction);
         }
-        else if (rnd < 6500) { //10%
-            return new ghostshark(400 + Math.random() * 150, pos, [1, 0]);
+        else if (rnd < 8650) { //10%
+            return new ghostshark(300 + Math.random() * 150, pos, direction);
         }
-        else if (rnd < 6900) { //4% max2
+        else if (rnd < 8750) { //4% max2
             if (limitnum[0] < 2) {
                 limitnum[0]++;
-                return new giantjellyfish(600 + Math.random() * 100, pos, [1, 0]);
-            } else return new bluejellyfish(100 + Math.random() * 100, pos, [1, 0]);
+                return new giantjellyfish(400 + Math.random() * 100, pos, direction);
+            } else return new bluejellyfish(100 + Math.random() * 100, pos, direction);
         }
-        else if (rnd < 7100) { //2% max1
+        else if (rnd < 8800) { //2% max1
             if (limitnum[1] < 1) {
                 limitnum[1]++;
-                return new greatwhiteshark(500 + player.size / 2, pos, [1, 0]);
-            } else return new ghostshark(400 + Math.random() * 150, pos, [1, 0]);
+                return new greatwhiteshark(500 + pos[1] / 10, pos, direction);
+            } else return new ghostshark(400 + Math.random() * 150, pos, direction);
         }
-        else if (rnd < 8400) { //13%
-            return new lanternfish(550 + Math.random() * 100, pos, [1, 0]);
+        else if (rnd < 8900) { //13%
+            return new lanternfish(550 + Math.random() * 100, pos, direction);
         }
         else if (rnd < 9900) { //15%
-            return new moonfish(250 + Math.random() * 50, pos, [1, 0]);
+            return new moonfish(200 + Math.random() * 100, pos, direction);
         }
         else { //1%
-            return new ruberfish(15 + player.size / 10, pos, [1, 0]);
+            return new ruberfish(15 + player.size / 10, pos, direction);
         }
     }
 }
