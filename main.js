@@ -161,8 +161,18 @@ class myfish extends basefish {
         let div0 = document.createElement("div");
         div0.style.width = "0px";
         div0.style.height = "1.5%";
+        div0.style.top = '20px';
         div0.style.background = "#FFFFFF";
-        bg.element.appendChild(div0);
+        body.appendChild(div0);
+        let healthnum = document.createElement('div');
+        healthnum.style.width = '100%';
+        healthnum.style.margin = 'auto';
+        healthnum.style.top = '40px';
+        healthnum.textContent = 'HP: 100/100';
+        healthnum.style.color = '#FFFFFF';
+        healthnum.style.textAlign = 'center';
+        healthnum.style.fontSize = '30px';
+        body.appendChild(healthnum);
         let tr1 = document.createElement("tr");
         let th1 = document.createElement("th");
         let td1 = document.createElement("td");
@@ -192,22 +202,21 @@ class myfish extends basefish {
         div.style.top = "2%";
         div.style.right = "1%";
         div.className = "table";
-        bg.element.appendChild(div);
+        body.appendChild(div);
         return function Update() {
-            div0.style.width = this._health.toFixed(2) + "%";
-            div0.style.margin = "0px " + ((100 - this._health) / 2).toFixed(2) + "%";
+            div0.style.width = (this._health * 0.8).toFixed(2) + "%";
+            div0.style.margin = "0px " + ((100 - this._health * 0.8) / 2).toFixed(2) + "%";
             let color = 0xFF * this._health / 100;
             let HEX = parseInt(color).toString(16);
             if (HEX.length < 2)
                 HEX = "0" + HEX;
             div0.style.background = "#FF" + HEX + HEX;
+            healthnum.textContent = 'HP: ' + this._health.toFixed(0) + '/100';
+            healthnum.style.color = '#FF' + HEX + HEX;
             td1.textContent = this._position[1].toFixed(0);
             td2.textContent = this._size.toFixed(0);
             td3.textContent = this._score.toFixed(0);
-            bg.element.removeChild(div);
-            bg.element.removeChild(div0);
-            bg.element.appendChild(div);
-            bg.element.appendChild(div0);
+
         }
     }
 }
@@ -738,13 +747,13 @@ function initbg() {
 
 function initfishs(num, bg) {
     for (let i = 0; i < num; i++) {
-        fishs.push(genAFish([200, 200], [bg.width * 2, bg.height * 2]));
+        fishs.push(genAFish([bg.width / 2, bg.height / 2], [bg.width * 2, bg.height * 2]));
         console.log("init " + fishs[i].type + ",pos: " + fishs[i].position);
     }
     for (let fish of fishs) { fish.element = null; }
 }
 
-function render(bg) {   
+function render(bg) {
     renderbg(bg);
     bg.rollingimg.render(bg);
     setTimeout(() => {
@@ -779,12 +788,12 @@ function render(bg) {
             let minangle = Math.min(Math.abs(alpha), Math.abs(beta));
             let detectdis = (player.size * 0.45 + fish.size * 0.4) * (2 / 3 + 1 / 3 * minangle); //侧面时判断距离小
             let worldsize = [worldadapt(bg.width), worldadapt(bg.height)];
-            if (distance > worldsize[0] * 1.5) { //太远重新生成
+            if (distance > worldsize[0] * 2) { //太远重新生成
                 if (fishs[i].type === "giantjellyfish")
                     limitnum[0]--;
                 else if (fishs[i].type === "greatwhiteshark")
                     limitnum[1]--;
-                fishs[i] = genAFish([worldsize[0], worldsize[1]], [worldsize[0] * 2, worldsize[1] * 2]);
+                fishs[i] = genAFish([worldsize[0] * 1.2, worldsize[1] * 1.2], [worldsize[0] * 2, worldsize[1] * 2]);
             }
             else if (distance < detectdis) { //距离近判断吃
                 if (alpha > 0.7071 && player.size > fish.size * 1.2) {
@@ -807,10 +816,14 @@ function render(bg) {
 function genAFish(innersize, outtersize, rnd = undefined) { //生成一条鱼 rnd用来手动控制概率
     let pos = genRandPos(player.position, innersize, outtersize);
     let direction;
-    if (Math.random() > 0.5)
-        direction = [1, 0];
-    else
+    if (pos[0] > player.position[0])
         direction = [-1, 0];
+    else
+        direction = [1, 0];
+    // if (Math.random() > 0.5)
+    //     direction = [1, 0];
+    // else
+    //     direction = [-1, 0];
     if (rnd === undefined) { rnd = Math.random() * 10000; }
     if (pos[1] < 3000) {
         if (rnd < 3000) { //24%
@@ -895,8 +908,8 @@ function genAFish(innersize, outtersize, rnd = undefined) { //生成一条鱼 rn
         else if (rnd < 7800) { //3%
             return new giantjellyfish(240 + Math.random() * 120, pos, direction);
         }
-        else if (rnd < 7900) { //5%
-            return new lanternfish(400 + Math.random() * 100, pos, direction);
+        else if (rnd < 8000) { //5%
+            return new lanternfish(400 + Math.random() * 200, pos, direction);
         }
         else if (rnd < 8700) { //12%
             return new moonfish(150 + Math.random() * 100, pos, direction);
@@ -936,7 +949,7 @@ function genAFish(innersize, outtersize, rnd = undefined) { //生成一条鱼 rn
         else if (rnd < 8750) { //4% max2
             if (limitnum[0] < 2) {
                 limitnum[0]++;
-                return new giantjellyfish(400 + Math.random() * 100, pos, direction);
+                return new giantjellyfish(600 + Math.random() * 200, pos, direction);
             } else return new bluejellyfish(100 + Math.random() * 100, pos, direction);
         }
         else if (rnd < 8800) { //2% max1
