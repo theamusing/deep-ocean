@@ -733,7 +733,7 @@ function initbg() {
 
 function initfishs(num, bg) {
     for (let i = 0; i < num; i++) {
-        fishs.push(genAFish([200, 200], [bg.width * 2, bg.height * 2]));
+        fishs.push(genAFish([bg.width / 2, bg.height / 2], [bg.width * 2, bg.height * 2]));
         console.log("init " + fishs[i].type + ",pos: " + fishs[i].position);
     }
     for (let fish of fishs) { fish.element = null; }
@@ -770,12 +770,12 @@ function render(bg) {
             let minangle = Math.min(Math.abs(alpha), Math.abs(beta));
             let detectdis = (player.size * 0.45 + fish.size * 0.4) * (2 / 3 + 1 / 3 * minangle); //侧面时判断距离小
             let worldsize = [worldadapt(bg.width), worldadapt(bg.height)];
-            if (distance > worldsize[0] * 1.5) { //太远重新生成
+            if (distance > worldsize[0] * 2) { //太远重新生成
                 if (fishs[i].type === "giantjellyfish")
                     limitnum[0]--;
                 else if (fishs[i].type === "greatwhiteshark")
                     limitnum[1]--;
-                fishs[i] = genAFish([worldsize[0], worldsize[1]], [worldsize[0] * 2, worldsize[1] * 2]);
+                fishs[i] = genAFish([worldsize[0] * 1.2, worldsize[1] * 1.2], [worldsize[0] * 2, worldsize[1] * 2]);
             }
             else if (distance < detectdis) { //距离近判断吃
                 if (alpha > 0.7071 && player.size > fish.size * 1.2) {
@@ -798,10 +798,14 @@ function render(bg) {
 function genAFish(innersize, outtersize, rnd = undefined) { //生成一条鱼 rnd用来手动控制概率
     let pos = genRandPos(player.position, innersize, outtersize);
     let direction;
-    if (Math.random() > 0.5)
-        direction = [1, 0];
-    else
+    if (pos[0] > player.position[0])
         direction = [-1, 0];
+    else
+        direction = [1, 0];
+    // if (Math.random() > 0.5)
+    //     direction = [1, 0];
+    // else
+    //     direction = [-1, 0];
     if (rnd === undefined) { rnd = Math.random() * 10000; }
     if (pos[1] < 3000) {
         if (rnd < 3000) { //24%
@@ -886,8 +890,8 @@ function genAFish(innersize, outtersize, rnd = undefined) { //生成一条鱼 rn
         else if (rnd < 7800) { //3%
             return new giantjellyfish(240 + Math.random() * 120, pos, direction);
         }
-        else if (rnd < 7900) { //5%
-            return new lanternfish(400 + Math.random() * 100, pos, direction);
+        else if (rnd < 8000) { //5%
+            return new lanternfish(400 + Math.random() * 200, pos, direction);
         }
         else if (rnd < 8700) { //12%
             return new moonfish(150 + Math.random() * 100, pos, direction);
