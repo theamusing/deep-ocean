@@ -161,8 +161,18 @@ class myfish extends basefish {
         let div0 = document.createElement("div");
         div0.style.width = "0px";
         div0.style.height = "1.5%";
+        div0.style.top = '20px';
         div0.style.background = "#FFFFFF";
-        bg.element.appendChild(div0);
+        body.appendChild(div0);
+        let healthnum = document.createElement('div');
+        healthnum.style.width = '100%';
+        healthnum.style.margin = 'auto';
+        healthnum.style.top = '40px';
+        healthnum.textContent = 'HP: 100/100';
+        healthnum.style.color = '#FFFFFF';
+        healthnum.style.textAlign = 'center';
+        healthnum.style.fontSize = '30px';
+        body.appendChild(healthnum);
         let tr1 = document.createElement("tr");
         let th1 = document.createElement("th");
         let td1 = document.createElement("td");
@@ -192,22 +202,21 @@ class myfish extends basefish {
         div.style.top = "2%";
         div.style.right = "1%";
         div.className = "table";
-        bg.element.appendChild(div);
+        body.appendChild(div);
         return function Update() {
-            div0.style.width = this._health.toFixed(2) + "%";
-            div0.style.margin = "0px " + ((100 - this._health) / 2).toFixed(2) + "%";
+            div0.style.width = (this._health * 0.8).toFixed(2) + "%";
+            div0.style.margin = "0px " + ((100 - this._health * 0.8) / 2).toFixed(2) + "%";
             let color = 0xFF * this._health / 100;
             let HEX = parseInt(color).toString(16);
             if (HEX.length < 2)
                 HEX = "0" + HEX;
             div0.style.background = "#FF" + HEX + HEX;
+            healthnum.textContent = 'HP: ' + this._health.toFixed(0) + '/100';
+            healthnum.style.color = '#FF' + HEX + HEX;
             td1.textContent = this._position[1].toFixed(0);
             td2.textContent = this._size.toFixed(0);
             td3.textContent = this._score.toFixed(0);
-            bg.element.removeChild(div);
-            bg.element.removeChild(div0);
-            bg.element.appendChild(div);
-            bg.element.appendChild(div0);
+
         }
     }
 }
