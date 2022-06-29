@@ -190,8 +190,9 @@ class myfish extends basefish {
         bar.style.color = "#FFFFFF"
         div.appendChild(bar);
         div.style.top = "2%";
+        div.style.right = "1%";
+        div.className = "table";
         bg.element.appendChild(div);
-        let maxwidth = bg.width;
         return function Update() {
             div0.style.width = this._health.toFixed(2) + "%";
             div0.style.margin = "0px " + ((100 - this._health) / 2).toFixed(2) + "%";
@@ -203,6 +204,10 @@ class myfish extends basefish {
             td1.textContent = this._position[1].toFixed(0);
             td2.textContent = this._size.toFixed(0);
             td3.textContent = this._score.toFixed(0);
+            bg.element.removeChild(div);
+            bg.element.removeChild(div0);
+            bg.element.appendChild(div);
+            bg.element.appendChild(div0);
         }
     }
 }
@@ -742,11 +747,11 @@ function initfishs(num, bg) {
 function render(bg) {   
     renderbg(bg);
     bg.rollingimg.render(bg);
-    if (player.element != null)
-        bg.element.removeChild(player.element);
-    if (player.updatestatus != null)
-        player.updatestatus();
-    redraw(player, bg);
+    setTimeout(() => {
+        if (player.element != null)
+            bg.element.removeChild(player.element);
+        redraw(player, bg);
+    }, 0);
     for (let fish of fishs) { //生成在html中
         setTimeout(() => {
             if (fish.element != null) {
@@ -757,6 +762,10 @@ function render(bg) {
             }
         }, 0);
     }
+    setTimeout(() => {
+        if (player.updatestatus != null)
+            player.updatestatus();
+    }, 0);
 
     player.move(mouse.target, mouse.speed);
     for (let i = 0; i < maxfishnum; i++) { //更新鱼的状态
